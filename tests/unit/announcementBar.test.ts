@@ -128,4 +128,23 @@ describe('Feature: Announcement Bar (TC-AB01..TC-AB07)', () => {
     announcementBarFeature.destroy();
     expect(document.querySelectorAll('[data-sk="announcementBar"]').length).toBe(0);
   });
+
+  it('TC-AB08: renders linear-gradient background when useGradient is true', () => {
+    announcementBarFeature.init(
+      {
+        ...announcementBarDefaults,
+        enabled: true,
+        useGradient: true,
+        bg: '#1e293b',
+        bgGradientEnd: '#3b82f6',
+        gradientAngle: 135,
+      },
+      mockEnv
+    );
+    const bar = document.querySelector('[data-sk="announcementBar"]') as HTMLElement;
+    expect(bar).not.toBeNull();
+    expect(bar.style.background).toContain('linear-gradient');
+    expect(bar.style.background).toContain('135deg');
+  });
 });
+

@@ -11,7 +11,13 @@ export function applyAnnouncementBarStyles(bar: HTMLElement, cfg: AnnouncementBa
   bar.style.right = '0';
   bar.style.width = '100%';
   bar.style.boxSizing = 'border-box';
-  bar.style.background = cfg.bg;
+  if (cfg.useGradient) {
+    const angle = typeof cfg.gradientAngle === 'number' ? cfg.gradientAngle : 90;
+    const end = cfg.bgGradientEnd || '#3b82f6';
+    bar.style.background = `linear-gradient(${angle}deg, ${cfg.bg}, ${end})`;
+  } else {
+    bar.style.background = cfg.bg;
+  }
   bar.style.color = cfg.fg;
   bar.style.padding = '10px 48px';
   bar.style.minHeight = '44px';
@@ -47,3 +53,4 @@ export function applyDismissButtonStyles(btn: HTMLButtonElement): void {
   btn.style.padding = '0';
   btn.style.borderRadius = '4px';
 }
+
