@@ -30,3 +30,4 @@ export class FeatureRegistry {
     this.features.clear();
   }
 }
+

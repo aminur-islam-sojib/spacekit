@@ -25,3 +25,4 @@ jobs:
 
       - name: Run CI pipeline
         run: npm run ci
+

@@ -1,11 +1,14 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { boot, VERSION } from '../../src/core/index.js';
+import { boot, VERSION, registry, lifecycle } from '../../src/core/index.js';
+import type { Feature } from '../../src/shared/types.js';
 
-describe('Core boot & kill switch (TC-C11)', () => {
+describe('Core boot & lifecycle integration (TC-C09, TC-C10, TC-C11)', () => {
   beforeEach(() => {
-    // Reset window state and search params
+    // Reset window state, storage, and search params
     delete window.__SITEKIT__;
+    localStorage.clear();
     window.history.replaceState({}, '', '/');
+    registry.clear();
     vi.restoreAllMocks();
   });
 
@@ -20,7 +23,26 @@ describe('Core boot & kill switch (TC-C11)', () => {
     expect(logSpy).not.toHaveBeenCalled();
   });
 
-  it('boots and sets window.__SITEKIT__ with version when kill switch is absent', () => {
+  it('TC-C10: halts feature activation when config disabled: true is present', () => {
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    localStorage.setItem(
+      `sitekit:config:${location.hostname}`,
+      JSON.stringify({
+        schemaVersion: 1,
+        revision: 1,
+        updatedAt: '2026-10-23T10:00:00Z',
+        disabled: true,
+        features: {},
+      })
+    );
+
+    const booted = boot();
+
+    expect(booted).toBe(false);
+    expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('disabled: true'));
+  });
+
+  it('boots, sets window.__SITEKIT__, and exposes status helper', () => {
     const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
     const booted = boot();
@@ -29,6 +51,10 @@ describe('Core boot & kill switch (TC-C11)', () => {
     expect(window.__SITEKIT__).toBeDefined();
     expect(window.__SITEKIT__?.version).toBe(VERSION);
     expect(logSpy).toHaveBeenCalledWith(`[SiteKit] core v${VERSION} loaded`);
+
+    const status = window.__SITEKIT__?.status();
+    expect(status?.version).toBe(VERSION);
+    expect(status?.featuresCount).toBe(0);
   });
 
   it('is idempotent when boot() is called repeatedly', () => {
@@ -41,5 +67,32 @@ describe('Core boot & kill switch (TC-C11)', () => {
     expect(second).toBe(false);
     expect(logSpy).toHaveBeenCalledTimes(1);
   });
-});
 
+  it('TC-C09: re-runs features on window mercury:load without duplicating', () => {
+    let initCalls = 0;
+    const testFeat: Feature<{ enabled: boolean }> = {
+      id: 'ajaxFeat',
+      label: 'AJAX Feat',
+      version: 1,
+      schema: [{ key: 'enabled', type: 'toggle', label: 'Enabled' }],
+      defaults: { enabled: true },
+      init() {
+        initCalls++;
+      },
+      update() {},
+      destroy() {},
+    };
+
+    registry.register(testFeat);
+    boot();
+
+    expect(initCalls).toBe(1);
+
+    // Dispatch Squarespace mercury:load AJAX event
+    window.dispatchEvent(new Event('mercury:load'));
+
+    // Re-initialized cleanly via lifecycle
+    expect(initCalls).toBe(2);
+    expect(lifecycle.isFeatureActive('ajaxFeat')).toBe(true);
+  });
+});
