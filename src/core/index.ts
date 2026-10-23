@@ -4,6 +4,7 @@ import { LifecycleManager } from './lifecycle.js';
 import { ConfigClient } from './config-client.js';
 import { detectEditor } from '../adapters/squarespace.js';
 import { backToTopFeature } from '../features/backToTop/index.js';
+import { announcementBarFeature } from '../features/announcementBar/index.js';
 
 export const VERSION = '0.1.0';
 
@@ -13,6 +14,7 @@ export const configClient = new ConfigClient();
 
 // Register built-in foundations
 registry.register(backToTopFeature);
+registry.register(announcementBarFeature);
 
 export interface SiteKitStatus {
   version: string;

@@ -31,6 +31,7 @@ async function startDev() {
       { in: 'src/core/index.ts', out: 'sitekit.core' },
       { in: 'src/editor/index.ts', out: 'sitekit.editor' },
       { in: 'src/features/backToTop/index.ts', out: 'features/backToTop' },
+      { in: 'src/features/announcementBar/index.ts', out: 'features/announcementBar' },
     ],
     outdir: 'dist',
     bundle: true,

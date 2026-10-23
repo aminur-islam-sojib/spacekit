@@ -78,6 +78,15 @@ export async function runBuild() {
       target: 'es2020',
       sourcemap: true,
     }),
+    build({
+      entryPoints: ['src/features/announcementBar/index.ts'],
+      outfile: 'dist/features/announcementBar.js',
+      bundle: true,
+      minify: true,
+      format: 'iife',
+      target: 'es2020',
+      sourcemap: true,
+    }),
   ]);
 
   generateManifest();
