@@ -28,7 +28,7 @@ function parseOutput(data) {
     console.log(`========================================================================`);
     console.log(`Code Injection Snippet (for Safari / Mobile / Canary testing):`);
     console.log(`------------------------------------------------------------------------`);
-    console.log(`<script src="${tunnelUrl}/sitekit.core.js" defer></script>`);
+    console.log(`<script src="${tunnelUrl}/sitekit.core.js" data-config="${tunnelUrl}/config.json" defer></script>`);
     console.log(`------------------------------------------------------------------------`);
     console.log(`Press Ctrl+C to close the tunnel.`);
     console.log(`========================================================================\n`);

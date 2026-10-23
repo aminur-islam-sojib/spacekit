@@ -49,7 +49,8 @@ async function startDev() {
     // CORS & Cache prevention headers
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, PUT, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', '*');
+    res.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type, If-Match, Access-Control-Request-Private-Network, *');
+    res.setHeader('Access-Control-Allow-Private-Network', 'true');
     res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
     res.setHeader('Pragma', 'no-cache');
     res.setHeader('Expires', '0');

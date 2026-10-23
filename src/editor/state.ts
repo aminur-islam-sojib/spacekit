@@ -187,7 +187,17 @@ export class EditorStore {
       this.state.isDirty = false;
       this.state.status = `Published (rev ${publishedData.revision}).`;
     } catch (err) {
-      this.state.status = `Publish failed (${(err as Error).message}).`;
+      console.error('[SiteKit Editor] Publish request failed:', err);
+      const isMixedContent =
+        typeof location !== 'undefined' &&
+        location.protocol === 'https:' &&
+        putUrl.startsWith('http://');
+
+      if (isMixedContent) {
+        this.state.status = 'Publish failed (Mixed Content: use npm run tunnel for HTTPS).';
+      } else {
+        this.state.status = `Publish failed (${(err as Error).message}). Check console.`;
+      }
     } finally {
       this.notify();
     }
