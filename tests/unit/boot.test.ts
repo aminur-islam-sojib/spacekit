@@ -42,3 +42,4 @@ describe('Core boot & kill switch (TC-C11)', () => {
     expect(logSpy).toHaveBeenCalledTimes(1);
   });
 });
+

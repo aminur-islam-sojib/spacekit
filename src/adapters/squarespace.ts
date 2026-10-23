@@ -34,3 +34,4 @@ export function detectEditor(): boolean {
   const hasEditClass = document.body ? document.body.classList.contains('sqs-edit-mode') : false;
   return hasEditFlag || hasEditClass;
 }
+

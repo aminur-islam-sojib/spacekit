@@ -69,3 +69,4 @@ if (!isWatch) {
       process.exit(1);
     });
 }
+

@@ -66,3 +66,4 @@ export interface SiteKitConfig {
   features: Record<string, Record<string, unknown>>;
   targets?: Record<string, unknown>;
 }
+

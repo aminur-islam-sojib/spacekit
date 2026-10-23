@@ -44,3 +44,4 @@ if (typeof window !== 'undefined' && typeof window.document !== 'undefined') {
     boot();
   }
 }
+

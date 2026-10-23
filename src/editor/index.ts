@@ -5,3 +5,4 @@
 export function initEditor(): void {
   console.log('[SiteKit Editor] initialized');
 }
+
