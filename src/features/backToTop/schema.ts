@@ -38,3 +38,4 @@ export const backToTopSchema: Field[] = [
   { key: 'showAfter', type: 'range', label: 'Appear after scrolling', min: 0, max: 1500, unit: 'px' },
   { key: 'smooth', type: 'toggle', label: 'Smooth scroll' },
 ];
+

@@ -34,3 +34,4 @@ export function applyBackToTopStyles(button: HTMLButtonElement, cfg: BackToTopCo
   button.style.boxShadow = '0 6px 20px rgba(0, 0, 0, 0.25)';
   button.style.transition = 'opacity 0.25s ease, transform 0.25s ease';
 }
+

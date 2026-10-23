@@ -140,3 +140,4 @@ export const backToTopFeature: Feature<BackToTopConfig> = {
 if (typeof window !== 'undefined' && window.__SITEKIT__) {
   window.__SITEKIT__.register(backToTopFeature);
 }
+

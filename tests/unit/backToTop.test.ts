@@ -115,3 +115,4 @@ describe('Feature: Back to top (TC-B01..B07, TC-B13)', () => {
     expect(document.querySelectorAll('[data-sk="backToTop"]').length).toBe(0);
   });
 });
+
