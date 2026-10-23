@@ -7,6 +7,7 @@ import {
 } from './schema.js';
 import {
   applyAnnouncementBarStyles,
+  applyInnerContainerStyles,
   applyDismissButtonStyles,
 } from './styles.js';
 
@@ -96,7 +97,51 @@ export const announcementBarFeature: Feature<AnnouncementBarConfig> = {
 
     applyAnnouncementBarStyles(bar, cfg);
 
-    const contentSpan = document.createElement('span');
+    const inner = document.createElement('div');
+    inner.setAttribute('data-sk-part', 'container');
+    applyInnerContainerStyles(inner, cfg);
+
+    // 1. Info group (Location & Contact)
+    const hasLocation = Boolean(cfg.locationText && cfg.locationText.trim() !== '');
+    const hasContact = Boolean(cfg.contactText && cfg.contactText.trim() !== '');
+
+    if (hasLocation || hasContact) {
+      const infoSpan = document.createElement('div');
+      infoSpan.setAttribute('data-sk-part', 'info');
+      infoSpan.style.display = 'inline-flex';
+      infoSpan.style.alignItems = 'center';
+      infoSpan.style.flexWrap = 'wrap';
+      infoSpan.style.gap = '12px';
+      infoSpan.style.fontSize = '13px';
+
+      if (hasLocation) {
+        const loc = document.createElement('span');
+        loc.textContent = cfg.locationText;
+        infoSpan.appendChild(loc);
+      }
+
+      if (hasContact) {
+        if (cfg.contactUrl && cfg.contactUrl.trim() !== '') {
+          const contactLink = document.createElement('a');
+          contactLink.href = cfg.contactUrl;
+          contactLink.textContent = cfg.contactText;
+          contactLink.style.color = 'inherit';
+          contactLink.style.textDecoration = 'underline';
+          contactLink.style.textUnderlineOffset = '2px';
+          infoSpan.appendChild(contactLink);
+        } else {
+          const contactSpan = document.createElement('span');
+          contactSpan.textContent = cfg.contactText;
+          infoSpan.appendChild(contactSpan);
+        }
+      }
+
+      inner.appendChild(infoSpan);
+    }
+
+    // 2. Main Announcement Message & CTA Link
+    const contentSpan = document.createElement('div');
+    contentSpan.setAttribute('data-sk-part', 'message');
     contentSpan.style.display = 'inline-flex';
     contentSpan.style.alignItems = 'center';
     contentSpan.style.justifyContent = 'center';
@@ -118,7 +163,8 @@ export const announcementBarFeature: Feature<AnnouncementBarConfig> = {
       contentSpan.appendChild(link);
     }
 
-    bar.appendChild(contentSpan);
+    inner.appendChild(contentSpan);
+    bar.appendChild(inner);
 
     if (cfg.closable) {
       const closeBtn = document.createElement('button');

@@ -33,6 +33,27 @@ export function applyAnnouncementBarStyles(bar: HTMLElement, cfg: AnnouncementBa
 }
 
 /**
+ * Applies layout alignment and flex properties to the announcement bar's inner container.
+ */
+export function applyInnerContainerStyles(inner: HTMLElement, cfg: AnnouncementBarConfig): void {
+  inner.style.display = 'flex';
+  inner.style.alignItems = 'center';
+  inner.style.flexWrap = 'wrap';
+  inner.style.gap = '8px 20px';
+  inner.style.width = '100%';
+  inner.style.maxWidth = '1280px';
+  inner.style.margin = '0 auto';
+
+  if (cfg.alignment === 'space-between') {
+    inner.style.justifyContent = 'space-between';
+  } else if (cfg.alignment === 'left') {
+    inner.style.justifyContent = 'flex-start';
+  } else {
+    inner.style.justifyContent = 'center';
+  }
+}
+
+/**
  * Applies styles to the dismiss button.
  * Enforces TC-AB04 and 44x44px touch hit target.
  */

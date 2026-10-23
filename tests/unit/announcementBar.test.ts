@@ -172,5 +172,46 @@ describe('Feature: Announcement Bar (TC-AB01..TC-AB07)', () => {
     announcementBarFeature.destroy();
     expect(mockHeader.style.top).toBe('0px');
   });
+
+  it('TC-AB10: renders location and contact information safely without XSS', () => {
+    announcementBarFeature.init(
+      {
+        ...announcementBarDefaults,
+        enabled: true,
+        locationText: '📍 New York, NY',
+        contactText: '📞 +1 (555) 019-2834',
+        contactUrl: 'tel:+15550192834',
+      },
+      mockEnv
+    );
+
+    const bar = document.querySelector('[data-sk="announcementBar"]') as HTMLElement;
+    expect(bar).not.toBeNull();
+    expect(bar.textContent).toContain('📍 New York, NY');
+    expect(bar.textContent).toContain('📞 +1 (555) 019-2834');
+
+    const contactLink = bar.querySelector('a[href^="tel:"]') as HTMLAnchorElement;
+    expect(contactLink).not.toBeNull();
+    expect(contactLink.getAttribute('href')).toBe('tel:+15550192834');
+  });
+
+  it('TC-AB11: respects layout alignment modes (center, space-between, left)', () => {
+    announcementBarFeature.init(
+      {
+        ...announcementBarDefaults,
+        enabled: true,
+        alignment: 'space-between',
+        locationText: 'Location A',
+        contactText: 'Contact B',
+      },
+      mockEnv
+    );
+
+    const bar = document.querySelector('[data-sk="announcementBar"]') as HTMLElement;
+    expect(bar).not.toBeNull();
+    const inner = bar.querySelector('[data-sk-part="container"]') as HTMLElement;
+    expect(inner).not.toBeNull();
+    expect(inner.style.justifyContent).toBe('space-between');
+  });
 });
 
