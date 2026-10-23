@@ -63,6 +63,53 @@ function createSvgClose(): SVGElement {
   return svg;
 }
 
+function createAnnouncementIcon(icon: string): SVGElement | null {
+  if (icon === 'none') {
+    return null;
+  }
+
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('viewBox', '0 0 24 24');
+  svg.setAttribute('width', '18');
+  svg.setAttribute('height', '18');
+  svg.setAttribute('fill', 'none');
+  svg.setAttribute('stroke', 'currentColor');
+  svg.setAttribute('stroke-width', '2');
+  svg.setAttribute('stroke-linecap', 'round');
+  svg.setAttribute('stroke-linejoin', 'round');
+  svg.setAttribute('aria-hidden', 'true');
+  svg.setAttribute('data-sk-part', 'icon');
+  svg.style.flexShrink = '0';
+  svg.style.marginRight = '2px';
+
+  let pathData = '';
+  switch (icon) {
+    case 'megaphone':
+      pathData = 'M3 11l18-5v12L3 13v-2zm8-5v12M6 13v6a2 2 0 002 2h0a2 2 0 002-2v-6';
+      break;
+    case 'tag':
+      pathData = 'M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82zM7 7h.01';
+      break;
+    case 'bell':
+      pathData = 'M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0';
+      break;
+    case 'star':
+      pathData = 'M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z';
+      break;
+    case 'info':
+      pathData = 'M12 22a10 10 0 100-20 10 10 0 000 20zM12 16v-4M12 8h.01';
+      break;
+    default:
+      return null;
+  }
+
+  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  path.setAttribute('d', pathData);
+  svg.appendChild(path);
+
+  return svg;
+}
+
 export const announcementBarFeature: Feature<AnnouncementBarConfig> = {
   id: 'announcementBar',
   label: 'Announcement bar',
@@ -147,6 +194,11 @@ export const announcementBarFeature: Feature<AnnouncementBarConfig> = {
     contentSpan.style.justifyContent = 'center';
     contentSpan.style.flexWrap = 'wrap';
     contentSpan.style.gap = '8px';
+
+    const iconEl = createAnnouncementIcon(cfg.icon || 'megaphone');
+    if (iconEl) {
+      contentSpan.appendChild(iconEl);
+    }
 
     const textSpan = document.createElement('span');
     textSpan.textContent = cfg.text;

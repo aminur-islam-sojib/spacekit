@@ -19,7 +19,11 @@ export function applyAnnouncementBarStyles(bar: HTMLElement, cfg: AnnouncementBa
     bar.style.background = cfg.bg;
   }
   bar.style.color = cfg.fg;
-  bar.style.padding = '10px 48px';
+  const px = typeof cfg.paddingX === 'number' ? cfg.paddingX : 32;
+  bar.style.paddingTop = '10px';
+  bar.style.paddingBottom = '10px';
+  bar.style.paddingLeft = `${px}px`;
+  bar.style.paddingRight = `${cfg.closable ? Math.max(px, 48) : px}px`;
   bar.style.minHeight = '44px';
   bar.style.display = 'flex';
   bar.style.alignItems = 'center';

@@ -213,5 +213,51 @@ describe('Feature: Announcement Bar (TC-AB01..TC-AB07)', () => {
     expect(inner).not.toBeNull();
     expect(inner.style.justifyContent).toBe('space-between');
   });
+
+  it('TC-AB12: renders selected icon SVG when icon is set, or none when set to none', () => {
+    announcementBarFeature.init(
+      {
+        ...announcementBarDefaults,
+        enabled: true,
+        icon: 'megaphone',
+      },
+      mockEnv
+    );
+
+    let bar = document.querySelector('[data-sk="announcementBar"]') as HTMLElement;
+    let iconSvg = bar.querySelector('[data-sk-part="icon"]');
+    expect(iconSvg).not.toBeNull();
+    expect(iconSvg?.tagName.toLowerCase()).toBe('svg');
+
+    announcementBarFeature.init(
+      {
+        ...announcementBarDefaults,
+        enabled: true,
+        icon: 'none',
+      },
+      mockEnv
+    );
+
+    bar = document.querySelector('[data-sk="announcementBar"]') as HTMLElement;
+    iconSvg = bar.querySelector('[data-sk-part="icon"]');
+    expect(iconSvg).toBeNull();
+  });
+
+  it('TC-AB13: applies custom paddingX side spacing to the announcement bar', () => {
+    announcementBarFeature.init(
+      {
+        ...announcementBarDefaults,
+        enabled: true,
+        paddingX: 56,
+        closable: false,
+      },
+      mockEnv
+    );
+
+    const bar = document.querySelector('[data-sk="announcementBar"]') as HTMLElement;
+    expect(bar).not.toBeNull();
+    expect(bar.style.paddingLeft).toBe('56px');
+    expect(bar.style.paddingRight).toBe('56px');
+  });
 });
 
