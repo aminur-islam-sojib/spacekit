@@ -1,0 +1,5 @@
+node_modules/
+dist/
+.size-limit/
+.DS_Store
+

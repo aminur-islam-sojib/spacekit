@@ -1,0 +1,7 @@
+[
+  {
+    "path": "dist/sitekit.core.js",
+    "limit": "8 KB",
+    "gzip": true
+  }
+]
