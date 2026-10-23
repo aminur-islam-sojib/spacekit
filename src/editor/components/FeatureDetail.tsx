@@ -16,6 +16,26 @@ export function FeatureDetail({
   onUpdateValue,
   onReset,
 }: FeatureDetailProps) {
+  const hasGroups = feature.schema.some((f) => Boolean(f.group));
+
+  const groups: { name: string; fields: typeof feature.schema }[] = [];
+  const ungrouped: typeof feature.schema = [];
+
+  if (hasGroups) {
+    for (const field of feature.schema) {
+      if (field.group) {
+        let g = groups.find((item) => item.name === field.group);
+        if (!g) {
+          g = { name: field.group, fields: [] };
+          groups.push(g);
+        }
+        g.fields.push(field);
+      } else {
+        ungrouped.push(field);
+      }
+    }
+  }
+
   return (
     <div>
       <button type="button" class="back" onClick={onBack}>
@@ -23,14 +43,48 @@ export function FeatureDetail({
       </button>
       <h2>{feature.label}</h2>
       <div class="fields">
-        {feature.schema.map((field) => (
-          <FieldControl
-            key={field.key}
-            field={field}
-            value={config[field.key] ?? feature.defaults[field.key]}
-            onChange={onUpdateValue}
-          />
-        ))}
+        {hasGroups ? (
+          <>
+            {ungrouped.length > 0 && (
+              <div class="field-group">
+                <div class="field-group-body">
+                  {ungrouped.map((field) => (
+                    <FieldControl
+                      key={field.key}
+                      field={field}
+                      value={config[field.key] ?? feature.defaults[field.key]}
+                      onChange={onUpdateValue}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+            {groups.map((group) => (
+              <div class="field-group" key={group.name}>
+                <div class="field-group-title">{group.name}</div>
+                <div class="field-group-body">
+                  {group.fields.map((field) => (
+                    <FieldControl
+                      key={field.key}
+                      field={field}
+                      value={config[field.key] ?? feature.defaults[field.key]}
+                      onChange={onUpdateValue}
+                    />
+                  ))}
+                </div>
+              </div>
+            ))}
+          </>
+        ) : (
+          feature.schema.map((field) => (
+            <FieldControl
+              key={field.key}
+              field={field}
+              value={config[field.key] ?? feature.defaults[field.key]}
+              onChange={onUpdateValue}
+            />
+          ))
+        )}
       </div>
       <button
         type="button"

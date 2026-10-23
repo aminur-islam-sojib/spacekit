@@ -259,5 +259,48 @@ describe('Feature: Announcement Bar (TC-AB01..TC-AB07)', () => {
     expect(bar.style.paddingLeft).toBe('56px');
     expect(bar.style.paddingRight).toBe('56px');
   });
+
+  it('TC-AB14: renders location pin and contact icons when configured', () => {
+    announcementBarFeature.init(
+      {
+        ...announcementBarDefaults,
+        enabled: true,
+        locationText: 'Paris, France',
+        showLocationIcon: true,
+        contactText: 'Call Us',
+        contactIcon: 'phone',
+      },
+      mockEnv
+    );
+
+    const bar = document.querySelector('[data-sk="announcementBar"]') as HTMLElement;
+    expect(bar).not.toBeNull();
+    const locIcon = bar.querySelector('[data-sk-part="location-icon"]');
+    expect(locIcon).not.toBeNull();
+    expect(locIcon?.tagName.toLowerCase()).toBe('svg');
+
+    const contactIcon = bar.querySelector('[data-sk-part="contact-icon"]');
+    expect(contactIcon).not.toBeNull();
+    expect(contactIcon?.tagName.toLowerCase()).toBe('svg');
+  });
+
+  it('TC-AB15: respects showLocationIcon: false and contactIcon: none by omitting icons', () => {
+    announcementBarFeature.init(
+      {
+        ...announcementBarDefaults,
+        enabled: true,
+        locationText: 'Paris, France',
+        showLocationIcon: false,
+        contactText: 'Call Us',
+        contactIcon: 'none',
+      },
+      mockEnv
+    );
+
+    const bar = document.querySelector('[data-sk="announcementBar"]') as HTMLElement;
+    expect(bar).not.toBeNull();
+    expect(bar.querySelector('[data-sk-part="location-icon"]')).toBeNull();
+    expect(bar.querySelector('[data-sk-part="contact-icon"]')).toBeNull();
+  });
 });
 

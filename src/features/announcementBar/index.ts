@@ -110,6 +110,68 @@ function createAnnouncementIcon(icon: string): SVGElement | null {
   return svg;
 }
 
+function createLocationIcon(): SVGElement {
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('viewBox', '0 0 24 24');
+  svg.setAttribute('width', '15');
+  svg.setAttribute('height', '15');
+  svg.setAttribute('fill', 'none');
+  svg.setAttribute('stroke', 'currentColor');
+  svg.setAttribute('stroke-width', '2');
+  svg.setAttribute('stroke-linecap', 'round');
+  svg.setAttribute('stroke-linejoin', 'round');
+  svg.setAttribute('aria-hidden', 'true');
+  svg.setAttribute('data-sk-part', 'location-icon');
+  svg.style.flexShrink = '0';
+  svg.style.marginRight = '4px';
+
+  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  path.setAttribute('d', 'M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z');
+  svg.appendChild(path);
+
+  const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+  circle.setAttribute('cx', '12');
+  circle.setAttribute('cy', '10');
+  circle.setAttribute('r', '3');
+  svg.appendChild(circle);
+
+  return svg;
+}
+
+function createContactIcon(type: string): SVGElement | null {
+  if (type === 'none') return null;
+
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('viewBox', '0 0 24 24');
+  svg.setAttribute('width', '15');
+  svg.setAttribute('height', '15');
+  svg.setAttribute('fill', 'none');
+  svg.setAttribute('stroke', 'currentColor');
+  svg.setAttribute('stroke-width', '2');
+  svg.setAttribute('stroke-linecap', 'round');
+  svg.setAttribute('stroke-linejoin', 'round');
+  svg.setAttribute('aria-hidden', 'true');
+  svg.setAttribute('data-sk-part', 'contact-icon');
+  svg.style.flexShrink = '0';
+  svg.style.marginRight = '4px';
+
+  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  if (type === 'email') {
+    path.setAttribute(
+      'd',
+      'M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2zm18 2l-10 7L2 6'
+    );
+  } else {
+    path.setAttribute(
+      'd',
+      'M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z'
+    );
+  }
+  svg.appendChild(path);
+
+  return svg;
+}
+
 export const announcementBarFeature: Feature<AnnouncementBarConfig> = {
   id: 'announcementBar',
   label: 'Announcement bar',
@@ -163,22 +225,53 @@ export const announcementBarFeature: Feature<AnnouncementBarConfig> = {
 
       if (hasLocation) {
         const loc = document.createElement('span');
-        loc.textContent = cfg.locationText;
+        loc.style.display = 'inline-flex';
+        loc.style.alignItems = 'center';
+
+        if (cfg.showLocationIcon !== false) {
+          loc.appendChild(createLocationIcon());
+        }
+
+        const locText = document.createElement('span');
+        locText.textContent = cfg.locationText;
+        loc.appendChild(locText);
         infoSpan.appendChild(loc);
       }
 
       if (hasContact) {
+        const contactIconType = cfg.contactIcon || (cfg.contactUrl?.startsWith('mailto:') ? 'email' : 'phone');
+
         if (cfg.contactUrl && cfg.contactUrl.trim() !== '') {
           const contactLink = document.createElement('a');
           contactLink.href = cfg.contactUrl;
-          contactLink.textContent = cfg.contactText;
+          contactLink.style.display = 'inline-flex';
+          contactLink.style.alignItems = 'center';
           contactLink.style.color = 'inherit';
           contactLink.style.textDecoration = 'underline';
           contactLink.style.textUnderlineOffset = '2px';
+
+          const icon = createContactIcon(contactIconType);
+          if (icon) {
+            contactLink.appendChild(icon);
+          }
+
+          const cText = document.createElement('span');
+          cText.textContent = cfg.contactText;
+          contactLink.appendChild(cText);
           infoSpan.appendChild(contactLink);
         } else {
           const contactSpan = document.createElement('span');
-          contactSpan.textContent = cfg.contactText;
+          contactSpan.style.display = 'inline-flex';
+          contactSpan.style.alignItems = 'center';
+
+          const icon = createContactIcon(contactIconType);
+          if (icon) {
+            contactSpan.appendChild(icon);
+          }
+
+          const cText = document.createElement('span');
+          cText.textContent = cfg.contactText;
+          contactSpan.appendChild(cText);
           infoSpan.appendChild(contactSpan);
         }
       }

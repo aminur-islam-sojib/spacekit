@@ -27,15 +27,17 @@ export const backToTopDefaults: BackToTopConfig = {
 };
 
 export const backToTopSchema: Field[] = [
-  { key: 'enabled', type: 'toggle', label: 'Show button' },
-  { key: 'side', type: 'select', label: 'Side', options: ['left', 'right'] },
-  { key: 'offsetX', type: 'range', label: 'Distance from side', min: 0, max: 120, unit: 'px' },
-  { key: 'offsetY', type: 'range', label: 'Distance from bottom', min: 0, max: 120, unit: 'px' },
-  { key: 'size', type: 'range', label: 'Size', min: 32, max: 80, unit: 'px' },
-  { key: 'radius', type: 'range', label: 'Roundness', min: 0, max: 50, unit: '%' },
-  { key: 'bg', type: 'color', label: 'Background' },
-  { key: 'fg', type: 'color', label: 'Arrow color' },
-  { key: 'showAfter', type: 'range', label: 'Appear after scrolling', min: 0, max: 1500, unit: 'px' },
-  { key: 'smooth', type: 'toggle', label: 'Smooth scroll' },
+  { key: 'enabled', type: 'toggle', label: 'Show button', group: 'Visibility' },
+  { key: 'showAfter', type: 'range', label: 'Appear after scrolling', min: 0, max: 1500, unit: 'px', group: 'Visibility' },
+  { key: 'smooth', type: 'toggle', label: 'Smooth scroll', group: 'Visibility' },
+
+  { key: 'side', type: 'select', label: 'Side', options: ['left', 'right'], group: 'Positioning' },
+  { key: 'offsetX', type: 'range', label: 'Distance from side', min: 0, max: 120, unit: 'px', group: 'Positioning' },
+  { key: 'offsetY', type: 'range', label: 'Distance from bottom', min: 0, max: 120, unit: 'px', group: 'Positioning' },
+
+  { key: 'size', type: 'range', label: 'Size', min: 32, max: 80, unit: 'px', group: 'Appearance' },
+  { key: 'radius', type: 'range', label: 'Roundness', min: 0, max: 50, unit: '%', group: 'Appearance' },
+  { key: 'bg', type: 'color', label: 'Background', group: 'Appearance' },
+  { key: 'fg', type: 'color', label: 'Arrow color', group: 'Appearance' },
 ];
 

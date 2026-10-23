@@ -4,6 +4,7 @@ export interface FieldBase {
   key: string;
   label: string;
   type: FieldType;
+  group?: string;
 }
 
 export interface ToggleField extends FieldBase {
