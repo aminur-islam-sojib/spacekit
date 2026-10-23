@@ -3,6 +3,7 @@ import type { Field } from '../../shared/types.js';
 export interface TextEffectsConfig extends Record<string, unknown> {
   enabled: boolean;
   target: 'h1' | 'h2' | 'h3' | 'headings' | 'all';
+  targetId: string;
 
   // Gradient text
   gradientEnabled: boolean;
@@ -34,6 +35,7 @@ export interface TextEffectsConfig extends Record<string, unknown> {
 export const textEffectsDefaults: TextEffectsConfig = {
   enabled: false,
   target: 'h1',
+  targetId: '',
 
   gradientEnabled: true,
   gradientStart: '#4f46e5',
@@ -65,6 +67,13 @@ export const textEffectsSchema: Field[] = [
     type: 'select',
     label: 'Target elements',
     options: ['h1', 'h2', 'h3', 'headings', 'all'],
+    group: 'Activation',
+  },
+  {
+    key: 'targetId',
+    type: 'text',
+    label: 'Target Block ID or Section ID (optional)',
+    maxLength: 250,
     group: 'Activation',
   },
 

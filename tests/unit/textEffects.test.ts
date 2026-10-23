@@ -147,4 +147,54 @@ describe('Feature: Text & Heading Effects (TC-TE01..TC-TE08)', () => {
     textEffectsFeature.destroy();
     expect(document.querySelectorAll('style[data-sk="textEffects"]').length).toBe(0);
   });
+
+  it('TC-TE09: scopes text effects selector to specific Block ID or Section ID when targetId is provided', () => {
+    // 1. Scopes by single ID without leading #
+    textEffectsFeature.init(
+      {
+        ...textEffectsDefaults,
+        enabled: true,
+        target: 'h1',
+        targetId: 'block-yui_12345',
+      },
+      mockEnv
+    );
+
+    let css = document.querySelector('style[data-sk="textEffects"]')?.textContent || '';
+    expect(css).toContain('#block-yui_12345 [data-sqsp-text-block-content] h1');
+    expect(css.startsWith('/* SiteKit Text & Heading Effects */\n[data-sqsp-text-block-content] h1')).toBe(false);
+
+    // 2. Scopes by ID with leading # and multiple comma-separated IDs
+    textEffectsFeature.update(
+      {
+        ...textEffectsDefaults,
+        enabled: true,
+        target: 'h2',
+        targetId: '#hero, block-promo_99',
+      },
+      mockEnv
+    );
+
+    css = document.querySelector('style[data-sk="textEffects"]')?.textContent || '';
+    expect(css).toContain('#hero [data-sqsp-text-block-content] h2');
+    expect(css).toContain('#block-promo_99 [data-sqsp-text-block-content] h2');
+
+    // 3. Reverts to global selector when targetId is cleared
+    textEffectsFeature.update(
+      {
+        ...textEffectsDefaults,
+        enabled: true,
+        target: 'h1',
+        targetId: '',
+      },
+      mockEnv
+    );
+
+    css = document.querySelector('style[data-sk="textEffects"]')?.textContent || '';
+    expect(css).toContain('[data-sqsp-text-block-content] h1');
+    expect(css).not.toContain('#block-yui_12345');
+    expect(css).not.toContain('#hero');
+  });
 });
+
+

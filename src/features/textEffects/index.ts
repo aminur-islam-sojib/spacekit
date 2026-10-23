@@ -70,3 +70,4 @@ export const textEffectsFeature: Feature<TextEffectsConfig> = {
 if (typeof window !== 'undefined' && window.__SITEKIT__) {
   window.__SITEKIT__.register(textEffectsFeature);
 }
+

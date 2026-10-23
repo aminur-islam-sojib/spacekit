@@ -8,24 +8,80 @@ export function withPseudo(selectorList: string, pseudo: string): string {
     .join(', ');
 }
 
-export function getTextTargetSelector(target: string): string {
-  switch (target) {
-    case 'h1':
-      return SELECTORS.headingsH1;
-    case 'h2':
-      return SELECTORS.headingsH2;
-    case 'h3':
-      return SELECTORS.headingsH3;
-    case 'all':
-      return SELECTORS.allText;
-    case 'headings':
-    default:
-      return SELECTORS.headingsAll;
+export function normalizeTargetId(rawId: string): string[] {
+  if (!rawId || !rawId.trim()) return [];
+  return rawId
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .map((id) => {
+      // If user typed e.g. "block-yui_123" or "hero", prepend "#"
+      if (!id.startsWith('#') && !id.startsWith('.') && !id.startsWith('[')) {
+        return `#${id}`;
+      }
+      return id;
+    });
+}
+
+export function getTextTargetSelector(target: string, targetId?: string): string {
+  const ids = targetId ? normalizeTargetId(targetId) : [];
+
+  // Global selector fallback when no targetId is specified
+  if (ids.length === 0) {
+    switch (target) {
+      case 'h1':
+        return SELECTORS.headingsH1;
+      case 'h2':
+        return SELECTORS.headingsH2;
+      case 'h3':
+        return SELECTORS.headingsH3;
+      case 'all':
+        return SELECTORS.allText;
+      case 'headings':
+      default:
+        return SELECTORS.headingsAll;
+    }
   }
+
+  // Determine tag list to scope
+  let tags: string[] = ['h1'];
+  switch (target) {
+    case 'h2':
+      tags = ['h2'];
+      break;
+    case 'h3':
+      tags = ['h3'];
+      break;
+    case 'all':
+      tags = ['h1', 'h2', 'h3', 'h4', 'p'];
+      break;
+    case 'headings':
+      tags = ['h1', 'h2', 'h3', 'h4'];
+      break;
+    case 'h1':
+    default:
+      tags = ['h1'];
+      break;
+  }
+
+  // Scoped selectors by ID
+  const scopedSelectors: string[] = [];
+  for (const id of ids) {
+    for (const tag of tags) {
+      scopedSelectors.push(
+        `${id} [data-sqsp-text-block-content] ${tag}`,
+        `${id} .sqs-block-html ${tag}`,
+        `${id} ${tag}`,
+        `${id}:is(${tag})`
+      );
+    }
+  }
+
+  return scopedSelectors.join(', ');
 }
 
 export function generateTextEffectsCss(cfg: TextEffectsConfig): string {
-  const targetSel = getTextTargetSelector(cfg.target);
+  const targetSel = getTextTargetSelector(cfg.target, cfg.targetId);
 
   // Gradient text
   let gradientCss = '';
@@ -165,3 +221,4 @@ ${keyframesCss}
 }
 `.trim();
 }
+
