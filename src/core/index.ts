@@ -1,7 +1,17 @@
+import type { Feature } from '../shared/types.js';
+import { FeatureRegistry } from './registry.js';
+import { LifecycleManager } from './lifecycle.js';
+
 export const VERSION = '0.1.0';
+
+export const registry = new FeatureRegistry();
+export const lifecycle = new LifecycleManager();
 
 export interface SiteKitGlobal {
   version: string;
+  register: <C extends Record<string, unknown> = Record<string, unknown>>(feature: Feature<C>) => void;
+  registry: FeatureRegistry;
+  lifecycle: LifecycleManager;
 }
 
 declare global {
@@ -31,6 +41,9 @@ export function boot(): boolean {
 
   window.__SITEKIT__ = {
     version: VERSION,
+    register: (feature) => registry.register(feature),
+    registry,
+    lifecycle,
   };
 
   console.log(`[SiteKit] core v${VERSION} loaded`);
@@ -44,4 +57,3 @@ if (typeof window !== 'undefined' && typeof window.document !== 'undefined') {
     boot();
   }
 }
-
