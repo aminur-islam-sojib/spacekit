@@ -1,0 +1,7 @@
+name = "spacekit-config"
+main = "src/index.ts"
+compatibility_date = "2026-10-01"
+
+[[kv_namespaces]]
+binding = "KV"
+id = "REPLACE_WITH_KV_ID"

@@ -59,7 +59,10 @@ function loadEditorChunk(): void {
   if (typeof document === 'undefined') return;
   if (document.getElementById('sitekit-editor-script')) return;
 
-  const script = document.currentScript as HTMLScriptElement | null;
+  const script =
+    (document.currentScript as HTMLScriptElement | null) ||
+    (document.querySelector('script[src*="sitekit.core"]') as HTMLScriptElement | null) ||
+    (document.querySelector('script[data-config]') as HTMLScriptElement | null);
   let baseUrl = '';
   if (script && script.src) {
     baseUrl = script.src.substring(0, script.src.lastIndexOf('/') + 1);
@@ -208,7 +211,9 @@ export function boot(): boolean {
 
   // Background network revalidation if data-config script attribute is present
   if (typeof document !== 'undefined') {
-    const script = document.currentScript as HTMLScriptElement | null;
+    const script =
+      (document.currentScript as HTMLScriptElement | null) ||
+      (document.querySelector('script[data-config]') as HTMLScriptElement | null);
     const configUrl = script?.dataset?.config;
     if (configUrl) {
       configClient.fetchAndSync(configUrl).then((freshConfig) => {

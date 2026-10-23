@@ -45,3 +45,4 @@ describe('Squarespace Adapter (detectEditor & SELECTORS)', () => {
     expect(SELECTORS.textContent).toBe('[data-sqsp-text-block-content]');
   });
 });
+

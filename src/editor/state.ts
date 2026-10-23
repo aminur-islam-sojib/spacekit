@@ -135,27 +135,36 @@ export class EditorStore {
   }
 
   async publish(): Promise<void> {
-    const script = typeof document !== 'undefined' ? (document.currentScript as HTMLScriptElement | null) : null;
-    const configUrl = script?.dataset?.config || '';
+    const scriptWithConfig =
+      typeof document !== 'undefined'
+        ? (document.querySelector('script[data-config]') as HTMLScriptElement | null)
+        : null;
+    const configUrl = scriptWithConfig?.dataset?.config || '';
 
     if (!configUrl) {
-      this.state.status = 'Saved in browser (data-config not set).';
+      this.state.status = 'Saved in browser only (add data-config to publish).';
       this.notify();
       return;
     }
 
-    const token = this.loadToken() || prompt('SiteKit Admin Token:');
+    const isLocal = configUrl.includes('localhost') || configUrl.includes('127.0.0.1');
+    const token = isLocal
+      ? this.loadToken() || 'local-dev-token'
+      : this.loadToken() || prompt('SiteKit Admin Token:');
+
     if (!token) {
       this.state.status = 'Publish cancelled.';
       this.notify();
       return;
     }
 
+    const putUrl = configUrl.replace(/\.json$/, '');
+
     try {
       this.state.status = 'Publishing...';
       this.notify();
 
-      const res = await fetch(configUrl, {
+      const res = await fetch(putUrl, {
         method: 'PUT',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -169,10 +178,14 @@ export class EditorStore {
         throw new Error(`HTTP ${res.status}`);
       }
 
+      const publishedData = (await res.json()) as SiteKitConfig;
+      this.state.draft = publishedData;
+      configClient.setCachedConfig(publishedData);
+
       this.saveToken(token);
       this.clearDraft();
       this.state.isDirty = false;
-      this.state.status = 'Published successfully.';
+      this.state.status = `Published (rev ${publishedData.revision}).`;
     } catch (err) {
       this.state.status = `Publish failed (${(err as Error).message}).`;
     } finally {
