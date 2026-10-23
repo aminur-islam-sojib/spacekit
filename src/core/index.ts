@@ -3,6 +3,7 @@ import { FeatureRegistry } from './registry.js';
 import { LifecycleManager } from './lifecycle.js';
 import { ConfigClient } from './config-client.js';
 import { detectEditor } from '../adapters/squarespace.js';
+import { backToTopFeature } from '../features/backToTop/index.js';
 
 export const VERSION = '0.1.0';
 
@@ -10,11 +11,15 @@ export const registry = new FeatureRegistry();
 export const lifecycle = new LifecycleManager();
 export const configClient = new ConfigClient();
 
+// Register built-in foundations
+registry.register(backToTopFeature);
+
 export interface SiteKitStatus {
   version: string;
   disabled: boolean;
   isEditor: boolean;
   featuresCount: number;
+  registeredFeatures: string[];
   activeFeatures: string[];
 }
 
@@ -25,6 +30,8 @@ export interface SiteKitGlobal {
   lifecycle: LifecycleManager;
   config: ConfigClient;
   status: () => SiteKitStatus;
+  enable: (featureId: string, customConfig?: Record<string, unknown>) => void;
+  disable: (featureId: string) => void;
 }
 
 declare global {
@@ -44,13 +51,13 @@ function getEnvironment(): SqspEnv {
   };
 }
 
+let mercuryBound = false;
+
 /**
  * Core runtime boot.
  * Checks kill switches (?sitekit=off and config.disabled: true).
  * Applies cache-first config and binds to mercury:load AJAX navigations.
  */
-let mercuryBound = false;
-
 export function boot(): boolean {
   if (typeof window === 'undefined') {
     return false;
@@ -104,19 +111,60 @@ export function boot(): boolean {
     lifecycle,
     config: configClient,
     status: () => {
-      const active = registry
-        .getAll()
-        .map((f) => f.id)
-        .filter((id) => lifecycle.isFeatureActive(id));
+      const all = registry.getAll().map((f) => f.id);
+      const active = all.filter((id) => lifecycle.isFeatureActive(id));
       const s: SiteKitStatus = {
         version: VERSION,
         disabled: configClient.isDisabled(),
         isEditor: env.isEditor,
-        featuresCount: registry.getAll().length,
+        featuresCount: all.length,
+        registeredFeatures: all,
         activeFeatures: active,
       };
       console.log('[SiteKit Status]', s);
       return s;
+    },
+    enable: (featureId, customConfig) => {
+      const feat = registry.get(featureId);
+      if (!feat) {
+        console.warn(`[SiteKit] Unknown feature '${featureId}'`);
+        return;
+      }
+      const current = configClient.getConfig();
+      const currentFeatConfig = current.features[featureId] || {};
+      const nextConfig = {
+        ...current,
+        features: {
+          ...current.features,
+          [featureId]: {
+            ...currentFeatConfig,
+            ...(customConfig || {}),
+            enabled: true,
+          },
+        },
+      };
+      configClient.setCachedConfig(nextConfig);
+      lifecycle.initFeature(feat, nextConfig.features[featureId], getEnvironment());
+      console.log(`[SiteKit] Feature '${featureId}' enabled.`);
+    },
+    disable: (featureId) => {
+      const feat = registry.get(featureId);
+      if (!feat) return;
+      const current = configClient.getConfig();
+      const currentFeatConfig = current.features[featureId] || {};
+      const nextConfig = {
+        ...current,
+        features: {
+          ...current.features,
+          [featureId]: {
+            ...currentFeatConfig,
+            enabled: false,
+          },
+        },
+      };
+      configClient.setCachedConfig(nextConfig);
+      lifecycle.destroyFeature(feat);
+      console.log(`[SiteKit] Feature '${featureId}' disabled.`);
     },
   };
 

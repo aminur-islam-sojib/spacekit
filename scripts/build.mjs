@@ -6,21 +6,34 @@ import { createHash } from 'node:crypto';
 const isWatch = process.argv.includes('--watch');
 const distDir = resolve(process.cwd(), 'dist');
 mkdirSync(distDir, { recursive: true });
+mkdirSync(join(distDir, 'features'), { recursive: true });
 
 export function generateManifest() {
-  const files = readdirSync(distDir).filter(
-    (f) => (f.endsWith('.js') || f.endsWith('.css')) && !f.endsWith('.map')
-  );
+  const getFiles = (dir) => {
+    const entries = readdirSync(dir, { withFileTypes: true });
+    let results = [];
+    for (const entry of entries) {
+      const full = join(dir, entry.name);
+      if (entry.isDirectory()) {
+        results = results.concat(getFiles(full));
+      } else if ((entry.name.endsWith('.js') || entry.name.endsWith('.css')) && !entry.name.endsWith('.map')) {
+        results.push(full);
+      }
+    }
+    return results;
+  };
+
+  const files = getFiles(distDir);
   const manifest = {
     generatedAt: new Date().toISOString(),
     files: {},
   };
 
-  for (const file of files) {
-    const fullPath = join(distDir, file);
-    const content = readFileSync(fullPath);
+  for (const filePath of files) {
+    const relPath = filePath.replace(distDir + '/', '');
+    const content = readFileSync(filePath);
     const hash = createHash('sha384').update(content).digest('base64');
-    manifest.files[file] = {
+    manifest.files[relPath] = {
       size: content.length,
       sri: `sha384-${hash}`,
     };
@@ -54,6 +67,15 @@ export async function runBuild() {
       target: 'es2020',
       sourcemap: true,
     }),
+    build({
+      entryPoints: ['src/features/backToTop/index.ts'],
+      outfile: 'dist/features/backToTop.js',
+      bundle: true,
+      minify: true,
+      format: 'iife',
+      target: 'es2020',
+      sourcemap: true,
+    }),
   ]);
 
   generateManifest();
@@ -69,4 +91,3 @@ if (!isWatch) {
       process.exit(1);
     });
 }
-

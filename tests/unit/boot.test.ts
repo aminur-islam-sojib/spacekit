@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { boot, VERSION, registry, lifecycle } from '../../src/core/index.js';
+import { backToTopFeature } from '../../src/features/backToTop/index.js';
 import type { Feature } from '../../src/shared/types.js';
 
 describe('Core boot & lifecycle integration (TC-C09, TC-C10, TC-C11)', () => {
@@ -9,6 +10,7 @@ describe('Core boot & lifecycle integration (TC-C09, TC-C10, TC-C11)', () => {
     localStorage.clear();
     window.history.replaceState({}, '', '/');
     registry.clear();
+    registry.register(backToTopFeature);
     vi.restoreAllMocks();
   });
 
@@ -42,7 +44,7 @@ describe('Core boot & lifecycle integration (TC-C09, TC-C10, TC-C11)', () => {
     expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('disabled: true'));
   });
 
-  it('boots, sets window.__SITEKIT__, and exposes status helper', () => {
+  it('boots, sets window.__SITEKIT__, and exposes status, enable, and disable helpers', () => {
     const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
     const booted = boot();
@@ -54,7 +56,17 @@ describe('Core boot & lifecycle integration (TC-C09, TC-C10, TC-C11)', () => {
 
     const status = window.__SITEKIT__?.status();
     expect(status?.version).toBe(VERSION);
-    expect(status?.featuresCount).toBe(0);
+    expect(status?.registeredFeatures).toContain('backToTop');
+
+    // Test enable helper
+    window.__SITEKIT__?.enable('backToTop', { showAfter: 0 });
+    expect(document.querySelector('[data-sk="backToTop"]')).not.toBeNull();
+    expect(window.__SITEKIT__?.status().activeFeatures).toContain('backToTop');
+
+    // Test disable helper
+    window.__SITEKIT__?.disable('backToTop');
+    expect(document.querySelector('[data-sk="backToTop"]')).toBeNull();
+    expect(window.__SITEKIT__?.status().activeFeatures).not.toContain('backToTop');
   });
 
   it('is idempotent when boot() is called repeatedly', () => {

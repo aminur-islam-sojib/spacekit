@@ -30,6 +30,7 @@ async function startDev() {
     entryPoints: [
       { in: 'src/core/index.ts', out: 'sitekit.core' },
       { in: 'src/editor/index.ts', out: 'sitekit.editor' },
+      { in: 'src/features/backToTop/index.ts', out: 'features/backToTop' },
     ],
     outdir: 'dist',
     bundle: true,
