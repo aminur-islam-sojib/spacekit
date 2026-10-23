@@ -204,3 +204,4 @@ describe('Editor Panel (TC-E04, TC-E05, TC-E08, TC-E09, TC-E10, TC-E11, TC-E12)'
     );
   });
 });
+
