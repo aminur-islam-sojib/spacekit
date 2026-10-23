@@ -24,3 +24,10 @@ Existing files in `/docs` remain untouched per project phase rules.
 - **Observation:** If Squarespace embeds the editor preview in an iframe (`#sqs-site-frame`), `document.body` in the top window may differ from the preview frame.
 - **Recommendation:** Account for potential iframe environments in `detectEditor()` once verified on the canary site.
 
+
+---
+
+### CR-04: Squarespace 7.1 Editor Body Classes
+- **Source Documents:** `01-research-findings.md` §2 & §10.2, `03-architecture.md` §2.5.
+- **Observation:** Verified on live Squarespace 7.1 site: inside `/config/`, `document.body.className` is `squarespace-config squarespace-editable sqs-frame-loaded`. The legacy class `sqs-edit-mode` was absent.
+- **Recommendation:** Update documentation and adapter selector table to include `squarespace-config`, `squarespace-editable`, and `location.pathname.startsWith('/config')`.

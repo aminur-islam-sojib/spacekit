@@ -19,9 +19,9 @@ Last updated: (Pending verification on canary site)
 ## 2. Editor Detection Hook (Research Findings §10.2)
 
 - **Question:** Does `body.sqs-edit-mode` appear in your editor preview? On which element, and at what point in the lifecycle?
-- **Status:** Pending verification.
-- **Observed Behavior:**
-- **Implication:** Confirms whether `detectEditor()` can rely on `document.body.classList.contains('sqs-edit-mode')` or if mutation observers / parent window checks are required.
+- **Status:** Verified on live Squarespace 7.1 site (`mustard-gerbil-bdhc.squarespace.com`).
+- **Observed Behavior:** Inside `https://*.squarespace.com/config/`, `document.body.className` contains `squarespace-config squarespace-editable sqs-frame-loaded`. The legacy class `sqs-edit-mode` was NOT present on `<body>`.
+- **Implication:** `detectEditor()` in `src/adapters/squarespace.ts` must check for `squarespace-config`, `squarespace-editable`, and `location.pathname.startsWith('/config')` in addition to `sqs-edit-mode`.
 
 ---
 
@@ -37,16 +37,16 @@ Last updated: (Pending verification on canary site)
 ## 4. Plan & Code Injection Support (Research Findings §10.4)
 
 - **Question:** Is the site on Core, Plus, Advanced or legacy Business plan, and is Code Injection accessible under Settings > Advanced?
-- **Status:** Pending verification.
-- **Observed Behavior:**
-- **Implication:** Confirms whether injected `<script>` tags run as expected.
+- **Status:** Verified.
+- **Observed Behavior:** Injected `<script>` tags load and execute successfully on the live site and in the `/config/` admin interface.
+- **Implication:** Confirms Code Injection executes reliably across visitor and editor sessions.
 
 ---
 
 ## 5. Editor Preview Frame Context (Research Findings §10.5)
 
 - **Question:** Is the editor preview rendered inside an `<iframe>` (e.g. `#sqs-site-frame`) or in the top-level document?
-- **Status:** Pending verification.
-- **Observed Behavior:**
-- **Implication:** Dictates where the Shadow DOM host element for the control panel mounts.
+- **Status:** Verified on live Squarespace 7.1 site.
+- **Observed Behavior:** The user ran `inIframe: window.parent !== window` at `https://*.squarespace.com/config/` and it evaluated to `false` in the main editor window where the injected script was executing.
+- **Implication:** The Shadow DOM host `#sitekit-host` can mount directly to `document.body` in the top document.
 

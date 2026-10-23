@@ -12,26 +12,50 @@ export const SELECTORS = {
   button: '[data-sqsp-button]',
   imageBlock: '[data-sqsp-image-block-image]',
 
-  // Community-documented (NOT guaranteed by Squarespace) - UNSTABLE
+  // Community-documented / Empirically Verified (NOT guaranteed by Squarespace) - UNSTABLE
   // UNSTABLE: Squarespace editor mode indicators
   editMode: 'body.sqs-edit-mode',
   editActive: 'body.sqs-edit-mode-active',
+  configMode: 'body.squarespace-config',
+  editableMode: 'body.squarespace-editable',
   // UNSTABLE: Section identity attribute (may change on section conversion)
   sectionIdAttr: 'data-section-id',
 } as const;
 
 /**
  * Detects whether the current page is being viewed inside the Squarespace editor.
- * Uses community body class with manual query param / hash fallback.
+ * Uses verified empirical classes ('squarespace-config', 'squarespace-editable'),
+ * community classes ('sqs-edit-mode'), pathname (/config/), and query param / hash fallback.
  */
 export function detectEditor(): boolean {
   if (typeof window === 'undefined' || typeof document === 'undefined') {
     return false;
   }
-  const params = new URLSearchParams(window.location.search);
-  const hasEditFlag = params.get('sitekit') === 'edit' || window.location.hash === '#sitekit-edit';
-  // UNSTABLE: body.sqs-edit-mode is community-documented
-  const hasEditClass = document.body ? document.body.classList.contains('sqs-edit-mode') : false;
-  return hasEditFlag || hasEditClass;
-}
 
+  // 1. Manual override flags
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('sitekit') === 'edit' || window.location.hash === '#sitekit-edit') {
+    return true;
+  }
+
+  // 2. Path-based detection (Squarespace admin backend URLs start with /config)
+  if (window.location.pathname.startsWith('/config')) {
+    return true;
+  }
+
+  // 3. Body class detection (verified empirical classes + community conventions)
+  const body = document.body;
+  if (body) {
+    const list = body.classList;
+    if (
+      list.contains('squarespace-config') ||
+      list.contains('squarespace-editable') ||
+      list.contains('sqs-edit-mode') ||
+      list.contains('sqs-edit-mode-active')
+    ) {
+      return true;
+    }
+  }
+
+  return false;
+}
