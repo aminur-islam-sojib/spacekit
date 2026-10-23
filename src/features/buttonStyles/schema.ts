@@ -106,3 +106,4 @@ export const buttonStylesSchema: Field[] = [
   { key: 'gradientAngle', type: 'range', label: 'Gradient angle', min: 0, max: 360, step: 15, unit: 'deg', group: 'Colors' },
   { key: 'fg', type: 'color', label: 'Text color', group: 'Colors' },
 ];
+

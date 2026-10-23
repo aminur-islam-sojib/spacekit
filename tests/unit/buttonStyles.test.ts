@@ -138,4 +138,50 @@ describe('Feature: Button Styling Pack (TC-BS01..TC-BS08)', () => {
     buttonStylesFeature.destroy();
     expect(document.querySelectorAll('style[data-sk="buttonStyles"]').length).toBe(0);
   });
+
+  it('TC-BS09: suppresses mouse focus ring and uses non-clipped focus outline without positive offset', () => {
+    buttonStylesFeature.init(
+      {
+        ...buttonStylesDefaults,
+        enabled: true,
+        borderWidth: 6,
+        borderStyle: 'solid',
+        borderColor: '#ff00a0',
+      },
+      mockEnv
+    );
+
+    const css = document.querySelector('style[data-sk="buttonStyles"]')?.textContent || '';
+
+    // Mouse click focus must be suppressed so clicking button does not create outline rings
+    expect(css).toContain(':focus:not(:focus-visible)');
+    expect(css).toContain('outline: none !important');
+
+    // Focus-visible must not use positive outline-offset (which causes parent overflow clipping artifacts)
+    expect(css).not.toContain('outline-offset: 3px');
+    expect(css).toContain('outline-offset: -2px !important');
+
+    // Focus ring must not use hardcoded #0f766e when custom colors are not set
+    expect(css).not.toContain('outline: 2px solid #0f766e');
+    expect(css).toContain('outline: 2px solid currentColor !important');
+  });
+
+  it('TC-BS10: scopes selectors strictly to interactive a and button tags', () => {
+    buttonStylesFeature.init({ ...buttonStylesDefaults, enabled: true, target: 'all' }, mockEnv);
+    const css = document.querySelector('style[data-sk="buttonStyles"]')?.textContent || '';
+
+    // All selectors must be scoped to a or button
+    const selectors = css.split('{')[0].split(',').map((s) => s.trim());
+    for (const selector of selectors) {
+      if (selector.startsWith('/*')) continue;
+      const startsWithInteractive =
+        selector.startsWith('a[') ||
+        selector.startsWith('button[') ||
+        selector.startsWith('a.') ||
+        selector.startsWith('button.');
+      expect(startsWithInteractive).toBe(true);
+    }
+  });
 });
+
+

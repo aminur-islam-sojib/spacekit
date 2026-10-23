@@ -70,3 +70,4 @@ export const buttonStylesFeature: Feature<ButtonStylesConfig> = {
 if (typeof window !== 'undefined' && window.__SITEKIT__) {
   window.__SITEKIT__.register(buttonStylesFeature);
 }
+

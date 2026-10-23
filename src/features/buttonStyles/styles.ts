@@ -15,8 +15,26 @@ export function getButtonSelector(target: string): string {
   }
 }
 
+export function withPseudo(selectorList: string, pseudo: string): string {
+  return selectorList
+    .split(',')
+    .map((s) => `${s.trim()}${pseudo}`)
+    .join(', ');
+}
+
 export function generateButtonCss(cfg: ButtonStylesConfig): string {
   const sel = getButtonSelector(cfg.target);
+  const selHover = withPseudo(sel, ':hover');
+  const selActive = withPseudo(sel, ':active');
+  const selFocusNoVis = withPseudo(sel, ':focus:not(:focus-visible)');
+  const selFocusVis = withPseudo(sel, ':focus-visible');
+
+  // Accent color used for fallback glow/tint
+  const accentColor = cfg.customColors
+    ? cfg.bg
+    : cfg.borderWidth > 0 && cfg.borderStyle !== 'none'
+      ? cfg.borderColor
+      : '#0f766e';
 
   // Border CSS
   let borderCss = 'border: none;';
@@ -41,9 +59,8 @@ export function generateButtonCss(cfg: ButtonStylesConfig): string {
       hoverShadow = 'box-shadow: 0 20px 38px rgba(0, 0, 0, 0.30);';
       break;
     case 'colored': {
-      const tintColor = cfg.customColors ? cfg.bg : '#0f766e';
-      shadowCss = `box-shadow: 0 8px 20px ${tintColor}40;`;
-      hoverShadow = `box-shadow: 0 12px 28px ${tintColor}60;`;
+      shadowCss = `box-shadow: 0 8px 20px ${accentColor}40;`;
+      hoverShadow = `box-shadow: 0 12px 28px ${accentColor}60;`;
       break;
     }
     case 'none':
@@ -64,7 +81,7 @@ export function generateButtonCss(cfg: ButtonStylesConfig): string {
       hoverTransform = 'transform: scale(1.04);';
       break;
     case 'glow':
-      hoverShadow = `box-shadow: 0 0 20px ${cfg.customColors ? cfg.bg : '#0f766e'};`;
+      hoverShadow = `box-shadow: 0 0 20px ${accentColor};`;
       break;
     case 'shine':
       hoverFilter = 'filter: brightness(1.12);';
@@ -103,26 +120,31 @@ ${sel} {
   transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease, background 0.2s ease !important;
 }
 
-${sel}:hover {
+${selHover} {
   ${hoverTransform}
   ${hoverShadow}
   ${hoverFilter}
 }
 
-${sel}:active {
+${selActive} {
   transform: translateY(0) scale(0.98) !important;
 }
 
-${sel}:focus-visible {
-  outline: 2px solid ${cfg.customColors ? cfg.bg : '#0f766e'} !important;
-  outline-offset: 3px !important;
+${selFocusNoVis} {
+  outline: none !important;
+}
+
+${selFocusVis} {
+  outline: 2px solid currentColor !important;
+  outline-offset: -2px !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  ${sel}, ${sel}:hover, ${sel}:active {
+  ${sel}, ${selHover}, ${selActive} {
     transition: none !important;
     transform: none !important;
   }
 }
 `.trim();
 }
+
