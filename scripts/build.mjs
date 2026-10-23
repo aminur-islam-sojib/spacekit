@@ -66,6 +66,8 @@ export async function runBuild() {
       format: 'iife',
       target: 'es2020',
       sourcemap: true,
+      jsx: 'automatic',
+      jsxImportSource: 'preact',
     }),
     build({
       entryPoints: ['src/features/backToTop/index.ts'],

@@ -38,6 +38,8 @@ async function startDev() {
     format: 'iife',
     target: 'es2020',
     sourcemap: true,
+    jsx: 'automatic',
+    jsxImportSource: 'preact',
     plugins: [manifestPlugin],
   });
 

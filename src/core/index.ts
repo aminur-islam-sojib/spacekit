@@ -51,6 +51,29 @@ function getEnvironment(): SqspEnv {
   };
 }
 
+/**
+ * Dynamically injects the editor bundle only when the Squarespace editor is detected.
+ * FR-E1, FR-E2, TC-E01: Visitors never download the editor chunk.
+ */
+function loadEditorChunk(): void {
+  if (typeof document === 'undefined') return;
+  if (document.getElementById('sitekit-editor-script')) return;
+
+  const script = document.currentScript as HTMLScriptElement | null;
+  let baseUrl = '';
+  if (script && script.src) {
+    baseUrl = script.src.substring(0, script.src.lastIndexOf('/') + 1);
+  } else {
+    baseUrl = '/';
+  }
+
+  const editorScript = document.createElement('script');
+  editorScript.id = 'sitekit-editor-script';
+  editorScript.src = `${baseUrl}sitekit.editor.js`;
+  editorScript.defer = true;
+  document.head.appendChild(editorScript);
+}
+
 let mercuryBound = false;
 
 /**
@@ -87,6 +110,19 @@ export function boot(): boolean {
 
   // Initialize registered features with current config
   lifecycle.initAll(registry.getAll(), cfg.features, env);
+
+  // Lazy-load editor chunk if editor is detected (TC-E01, TC-E02, TC-E03, TC-E04)
+  if (env.isEditor) {
+    loadEditorChunk();
+  } else if (typeof document !== 'undefined' && document.body) {
+    const observer = new MutationObserver(() => {
+      if (detectEditor()) {
+        loadEditorChunk();
+        observer.disconnect();
+      }
+    });
+    observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+  }
 
   // Set up AJAX navigation re-init on mercury:load (TC-C09)
   if (!mercuryBound) {
