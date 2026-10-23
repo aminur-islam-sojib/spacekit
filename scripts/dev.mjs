@@ -93,7 +93,7 @@ async function startDev() {
           res.end(serialized);
         } catch (e) {
           res.writeHead(400, { 'Content-Type': 'text/plain' });
-          res.end(`Bad Request: ${(e as Error).message}`);
+          res.end(`Bad Request: ${e.message || e}`);
         }
       });
       return;
