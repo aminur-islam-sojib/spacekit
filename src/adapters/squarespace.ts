@@ -22,6 +22,13 @@ export const SELECTORS = {
   sectionIdAttr: 'data-section-id',
   // UNSTABLE: Squarespace 7.1 Header container
   header: 'header#header, header.header, #header',
+  // UNSTABLE: Squarespace 7.1 button selectors with class-based fallbacks
+  buttonsAll:
+    '[data-sqsp-button], a.sqs-block-button-element, button.sqs-block-button-element, .sqs-button-element--primary, .sqs-button-element--secondary, .sqs-button-element--tertiary',
+  buttonsPrimary:
+    '[data-sqsp-button]:not(.sqs-button-element--secondary):not(.sqs-button-element--tertiary), .sqs-button-element--primary',
+  buttonsSecondary: '.sqs-button-element--secondary',
+  buttonsTertiary: '.sqs-button-element--tertiary',
 } as const;
 
 /**

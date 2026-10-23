@@ -87,6 +87,15 @@ export async function runBuild() {
       target: 'es2020',
       sourcemap: true,
     }),
+    build({
+      entryPoints: ['src/features/buttonStyles/index.ts'],
+      outfile: 'dist/features/buttonStyles.js',
+      bundle: true,
+      minify: true,
+      format: 'iife',
+      target: 'es2020',
+      sourcemap: true,
+    }),
   ]);
 
   generateManifest();

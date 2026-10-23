@@ -2,6 +2,13 @@ import { render, h } from 'preact';
 import { EDITOR_CSS } from './styles.js';
 import { EditorStore } from './state.js';
 import { App } from './components/App.js';
+import { registry } from '../core/index.js';
+import { announcementBarFeature } from '../features/announcementBar/index.js';
+import { buttonStylesFeature } from '../features/buttonStyles/index.js';
+
+// Ensure all catalog features are registered for the editor panel
+registry.register(announcementBarFeature);
+registry.register(buttonStylesFeature);
 
 let hostEl: HTMLElement | null = null;
 let storeInstance: EditorStore | null = null;

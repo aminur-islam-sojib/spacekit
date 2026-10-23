@@ -13,5 +13,10 @@
     "path": "dist/features/announcementBar.js",
     "limit": "5 KB",
     "gzip": true
+  },
+  {
+    "path": "dist/features/buttonStyles.js",
+    "limit": "5 KB",
+    "gzip": true
   }
 ]

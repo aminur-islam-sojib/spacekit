@@ -4,7 +4,6 @@ import { LifecycleManager } from './lifecycle.js';
 import { ConfigClient } from './config-client.js';
 import { detectEditor } from '../adapters/squarespace.js';
 import { backToTopFeature } from '../features/backToTop/index.js';
-import { announcementBarFeature } from '../features/announcementBar/index.js';
 
 export const VERSION = '0.1.0';
 
@@ -14,7 +13,6 @@ export const configClient = new ConfigClient();
 
 // Register built-in foundations
 registry.register(backToTopFeature);
-registry.register(announcementBarFeature);
 
 export interface SiteKitStatus {
   version: string;
@@ -53,6 +51,18 @@ function getEnvironment(): SqspEnv {
   };
 }
 
+function getBaseUrl(): string {
+  if (typeof document === 'undefined') return '/';
+  const script =
+    (document.currentScript as HTMLScriptElement | null) ||
+    (document.querySelector('script[src*="sitekit.core"]') as HTMLScriptElement | null) ||
+    (document.querySelector('script[data-config]') as HTMLScriptElement | null);
+  if (script && script.src) {
+    return script.src.substring(0, script.src.lastIndexOf('/') + 1);
+  }
+  return '/';
+}
+
 /**
  * Dynamically injects the editor bundle only when the Squarespace editor is detected.
  * FR-E1, FR-E2, TC-E01: Visitors never download the editor chunk.
@@ -61,22 +71,24 @@ function loadEditorChunk(): void {
   if (typeof document === 'undefined') return;
   if (document.getElementById('sitekit-editor-script')) return;
 
-  const script =
-    (document.currentScript as HTMLScriptElement | null) ||
-    (document.querySelector('script[src*="sitekit.core"]') as HTMLScriptElement | null) ||
-    (document.querySelector('script[data-config]') as HTMLScriptElement | null);
-  let baseUrl = '';
-  if (script && script.src) {
-    baseUrl = script.src.substring(0, script.src.lastIndexOf('/') + 1);
-  } else {
-    baseUrl = '/';
-  }
-
   const editorScript = document.createElement('script');
   editorScript.id = 'sitekit-editor-script';
-  editorScript.src = `${baseUrl}sitekit.editor.js`;
+  editorScript.src = `${getBaseUrl()}sitekit.editor.js`;
   editorScript.defer = true;
   document.head.appendChild(editorScript);
+}
+
+const FEATURE_CHUNKS = ['announcementBar', 'buttonStyles'];
+
+function loadFeatureChunk(featureId: string): void {
+  if (typeof document === 'undefined') return;
+  if (document.getElementById(`sitekit-feat-${featureId}`)) return;
+
+  const script = document.createElement('script');
+  script.id = `sitekit-feat-${featureId}`;
+  script.src = `${getBaseUrl()}features/${featureId}.js`;
+  script.defer = true;
+  document.head.appendChild(script);
 }
 
 let mercuryBound = false;
@@ -116,6 +128,13 @@ export function boot(): boolean {
   // Initialize registered features with current config
   lifecycle.initAll(registry.getAll(), cfg.features, env);
 
+  // Lazy-load enabled feature chunks for visitors
+  for (const featureId of FEATURE_CHUNKS) {
+    if (cfg.features[featureId]?.enabled && !registry.get(featureId)) {
+      loadFeatureChunk(featureId);
+    }
+  }
+
   // Lazy-load editor chunk if editor is detected (TC-E01, TC-E02, TC-E03, TC-E04)
   if (env.isEditor) {
     loadEditorChunk();
@@ -133,7 +152,13 @@ export function boot(): boolean {
   if (!mercuryBound) {
     window.addEventListener('mercury:load', () => {
       if (!configClient.isDisabled()) {
-        lifecycle.initAll(registry.getAll(), configClient.getConfig().features, getEnvironment());
+        const curCfg = configClient.getConfig();
+        for (const featureId of FEATURE_CHUNKS) {
+          if (curCfg.features[featureId]?.enabled && !registry.get(featureId)) {
+            loadFeatureChunk(featureId);
+          }
+        }
+        lifecycle.initAll(registry.getAll(), curCfg.features, getEnvironment());
       }
     });
     mercuryBound = true;
