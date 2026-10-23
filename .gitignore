@@ -3,3 +3,4 @@ dist/
 .size-limit/
 .DS_Store
 
+test-results/

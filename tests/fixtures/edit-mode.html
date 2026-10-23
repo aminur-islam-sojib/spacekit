@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Squarespace Editor Environment Fixture</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: system-ui, sans-serif;
+    }
+    .sqsp-editor-canvas {
+      padding: 40px;
+      min-height: 100vh;
+      background: #f4f4f4;
+    }
+  </style>
+  <script src="/dist/sitekit.core.js" defer></script>
+</head>
+<body class="squarespace-config squarespace-editable sqs-frame-loaded">
+  <div class="sqsp-editor-canvas">
+    <h1>Squarespace 7.1 Backend Canvas</h1>
+    <section data-sqsp-section="fluid-engine">
+      <div data-sqsp-block="text">
+        <div data-sqsp-text-block-content>
+          <p>Editable block content in administrative view.</p>
+        </div>
+      </div>
+    </section>
+  </div>
+</body>
+</html>

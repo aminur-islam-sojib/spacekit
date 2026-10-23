@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Squarespace Mercury AJAX Navigation Fixture</title>
+  <script src="/dist/sitekit.core.js" defer></script>
+</head>
+<body>
+  <div id="site-content">
+    <section data-sqsp-section="fluid-engine">
+      <h1>Page 1 Content</h1>
+    </section>
+  </div>
+  <button id="simulate-ajax" type="button">Navigate via Mercury AJAX</button>
+
+  <script>
+    document.getElementById('simulate-ajax').addEventListener('click', () => {
+      document.getElementById('site-content').innerHTML = `
+        <section data-sqsp-section="fluid-engine">
+          <h1>Page 2 Content (Swapped via AJAX)</h1>
+        </section>
+      `;
+      window.dispatchEvent(new Event('mercury:load'));
+    });
+  </script>
+</body>
+</html>

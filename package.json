@@ -12,7 +12,7 @@
     "test:e2e": "playwright test tests/e2e/fixtures.spec.ts",
     "test:canary": "playwright test tests/e2e/canary.spec.ts",
     "size": "size-limit",
-    "ci": "npm run lint && npm run typecheck && npm test && npm run build && npm run size",
+    "ci": "npm run lint && npm run typecheck && npm test && npm run build && npm run size && npm run test:e2e",
     "tunnel": "node scripts/tunnel.mjs"
   },
   "dependencies": {

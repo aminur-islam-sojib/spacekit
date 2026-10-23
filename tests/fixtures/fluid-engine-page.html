@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Squarespace 7.1 Fluid Engine Fixture</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: system-ui, sans-serif;
+      line-height: 1.6;
+    }
+    section {
+      padding: 60px 24px;
+      min-height: 80vh;
+      border-bottom: 1px solid #eee;
+    }
+    .spacer {
+      height: 1200px;
+      background: linear-gradient(to bottom, #f9fafb, #e5e7eb);
+      padding: 24px;
+    }
+  </style>
+  <script src="/dist/sitekit.core.js" defer></script>
+</head>
+<body>
+  <section data-sqsp-section="fluid-engine" id="hero">
+    <div data-sqsp-block="text">
+      <div data-sqsp-text-block-content>
+        <h1>Welcome to Spacekit Canary Fixture</h1>
+        <p>This fixture models a real Squarespace 7.1 page adhering to the Custom Code Specification.</p>
+      </div>
+    </div>
+    <div data-sqsp-block="button">
+      <a href="#more" data-sqsp-button>Explore Details</a>
+    </div>
+  </section>
+
+  <div class="spacer">
+    <p>Long scrolling section to test scroll triggers and back to top behavior.</p>
+  </div>
+
+  <section data-sqsp-section="fluid-engine" id="footer">
+    <div data-sqsp-block="text">
+      <div data-sqsp-text-block-content>
+        <p>Footer content.</p>
+      </div>
+    </div>
+  </section>
+</body>
+</html>
