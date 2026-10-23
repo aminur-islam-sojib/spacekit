@@ -146,5 +146,31 @@ describe('Feature: Announcement Bar (TC-AB01..TC-AB07)', () => {
     expect(bar.style.background).toContain('linear-gradient');
     expect(bar.style.background).toContain('135deg');
   });
+
+  it('TC-AB09: dynamically shifts fixed header down and restores on destroy', () => {
+    const mockHeader = document.createElement('header');
+    mockHeader.id = 'header';
+    mockHeader.style.position = 'fixed';
+    mockHeader.style.top = '0px';
+    document.body.appendChild(mockHeader);
+
+    announcementBarFeature.init(
+      {
+        ...announcementBarDefaults,
+        enabled: true,
+        sticky: true,
+      },
+      mockEnv
+    );
+
+    const bar = document.querySelector('[data-sk="announcementBar"]') as HTMLElement;
+    expect(bar).not.toBeNull();
+
+    expect(mockHeader.style.top).not.toBe('0px');
+    expect(mockHeader.style.top).toMatch(/\d+px/);
+
+    announcementBarFeature.destroy();
+    expect(mockHeader.style.top).toBe('0px');
+  });
 });
 

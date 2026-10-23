@@ -1,4 +1,5 @@
 import type { Feature, SqspEnv, ProbeResult } from '../../shared/types.js';
+import { SELECTORS } from '../../adapters/squarespace.js';
 import {
   type AnnouncementBarConfig,
   announcementBarSchema,
@@ -12,6 +13,9 @@ import {
 let barEl: HTMLElement | null = null;
 let dismissListener: (() => void) | null = null;
 let currentDismissBtn: HTMLButtonElement | null = null;
+let headerEl: HTMLElement | null = null;
+let originalHeaderTop: string | null = null;
+let scrollListener: (() => void) | null = null;
 
 const DISMISS_KEY = 'sitekit:announcementBar:dismissed';
 
@@ -137,6 +141,41 @@ export const announcementBarFeature: Feature<AnnouncementBarConfig> = {
 
     document.body.insertBefore(bar, document.body.firstChild);
     barEl = bar;
+
+    // Coordinate with Squarespace 7.1 header to prevent overlap (TC-AB09)
+    const header = document.querySelector(SELECTORS.header) as HTMLElement | null;
+    if (header) {
+      const computed = typeof window !== 'undefined' ? window.getComputedStyle(header) : null;
+      const isFixed =
+        computed?.position === 'fixed' ||
+        computed?.position === 'sticky' ||
+        header.style.position === 'fixed' ||
+        header.style.position === 'sticky';
+
+      if (isFixed) {
+        headerEl = header;
+        originalHeaderTop = header.style.top || '';
+        const barHeight = Math.max(
+          bar.offsetHeight || 0,
+          Math.round(bar.getBoundingClientRect().height || 0),
+          44
+        );
+
+        if (cfg.sticky) {
+          header.style.top = `${barHeight}px`;
+        } else {
+          const updateOffset = () => {
+            if (!headerEl) return;
+            const scroll = typeof window !== 'undefined' ? window.scrollY || 0 : 0;
+            const remaining = Math.max(0, barHeight - scroll);
+            headerEl.style.top = `${remaining}px`;
+          };
+          updateOffset();
+          scrollListener = updateOffset;
+          window.addEventListener('scroll', scrollListener, { passive: true });
+        }
+      }
+    }
   },
 
   update(cfg: AnnouncementBarConfig, env: SqspEnv): void {
@@ -149,6 +188,21 @@ export const announcementBarFeature: Feature<AnnouncementBarConfig> = {
   },
 
   destroy(): void {
+    if (scrollListener && typeof window !== 'undefined') {
+      window.removeEventListener('scroll', scrollListener);
+      scrollListener = null;
+    }
+
+    if (headerEl) {
+      if (originalHeaderTop !== null) {
+        headerEl.style.top = originalHeaderTop;
+      } else {
+        headerEl.style.removeProperty('top');
+      }
+      headerEl = null;
+      originalHeaderTop = null;
+    }
+
     if (dismissListener && currentDismissBtn) {
       currentDismissBtn.removeEventListener('click', dismissListener);
       dismissListener = null;

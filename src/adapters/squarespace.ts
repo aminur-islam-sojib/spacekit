@@ -20,6 +20,8 @@ export const SELECTORS = {
   editableMode: 'body.squarespace-editable',
   // UNSTABLE: Section identity attribute (may change on section conversion)
   sectionIdAttr: 'data-section-id',
+  // UNSTABLE: Squarespace 7.1 Header container
+  header: 'header#header, header.header, #header',
 } as const;
 
 /**
