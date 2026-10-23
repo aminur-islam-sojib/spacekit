@@ -29,6 +29,14 @@ export const SELECTORS = {
     'a[data-sqsp-button]:not(.sqs-button-element--secondary):not(.sqs-button-element--tertiary), button[data-sqsp-button]:not(.sqs-button-element--secondary):not(.sqs-button-element--tertiary), a.sqs-button-element--primary, button.sqs-button-element--primary',
   buttonsSecondary: 'a.sqs-button-element--secondary, button.sqs-button-element--secondary',
   buttonsTertiary: 'a.sqs-button-element--tertiary, button.sqs-button-element--tertiary',
+  // UNSTABLE: Squarespace 7.1 text & heading selectors with class-based fallbacks
+  headingsAll:
+    '[data-sqsp-text-block-content] h1, [data-sqsp-text-block-content] h2, [data-sqsp-text-block-content] h3, [data-sqsp-text-block-content] h4, .sqs-block-html h1, .sqs-block-html h2, .sqs-block-html h3, .sqs-block-html h4',
+  headingsH1: '[data-sqsp-text-block-content] h1, .sqs-block-html h1',
+  headingsH2: '[data-sqsp-text-block-content] h2, .sqs-block-html h2',
+  headingsH3: '[data-sqsp-text-block-content] h3, .sqs-block-html h3',
+  allText:
+    '[data-sqsp-text-block-content] p, [data-sqsp-text-block-content] h1, [data-sqsp-text-block-content] h2, [data-sqsp-text-block-content] h3, [data-sqsp-text-block-content] h4, .sqs-block-html p, .sqs-block-html h1, .sqs-block-html h2',
 } as const;
 
 /**

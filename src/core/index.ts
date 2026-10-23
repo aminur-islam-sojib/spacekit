@@ -78,7 +78,7 @@ function loadEditorChunk(): void {
   document.head.appendChild(editorScript);
 }
 
-const FEATURE_CHUNKS = ['announcementBar', 'buttonStyles'];
+const FEATURE_CHUNKS = ['announcementBar', 'buttonStyles', 'textEffects'];
 
 function loadFeatureChunk(featureId: string): void {
   if (typeof document === 'undefined') return;

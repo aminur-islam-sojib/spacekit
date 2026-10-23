@@ -96,6 +96,15 @@ export async function runBuild() {
       target: 'es2020',
       sourcemap: true,
     }),
+    build({
+      entryPoints: ['src/features/textEffects/index.ts'],
+      outfile: 'dist/features/textEffects.js',
+      bundle: true,
+      minify: true,
+      format: 'iife',
+      target: 'es2020',
+      sourcemap: true,
+    }),
   ]);
 
   generateManifest();

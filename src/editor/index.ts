@@ -5,10 +5,12 @@ import { App } from './components/App.js';
 import { registry } from '../core/index.js';
 import { announcementBarFeature } from '../features/announcementBar/index.js';
 import { buttonStylesFeature } from '../features/buttonStyles/index.js';
+import { textEffectsFeature } from '../features/textEffects/index.js';
 
 // Ensure all catalog features are registered for the editor panel
 registry.register(announcementBarFeature);
 registry.register(buttonStylesFeature);
+registry.register(textEffectsFeature);
 
 let hostEl: HTMLElement | null = null;
 let storeInstance: EditorStore | null = null;
