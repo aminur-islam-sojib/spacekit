@@ -43,3 +43,4 @@ jobs:
               body: `The automated nightly canary check detected a contract violation or failure on the live Squarespace canary site.\n\nPlease inspect the workflow run logs and verify if Squarespace changed DOM attributes or class selectors in \`src/adapters/squarespace.ts\`.`,
               labels: ['canary-drift', 'bug']
             });
+

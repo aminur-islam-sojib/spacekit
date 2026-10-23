@@ -99,3 +99,4 @@ test.describe('L2 Fixture Integration (TC-C01, TC-C11, TC-E01..E04, TC-B03..B04)
     await expect(buttons).toHaveCount(1);
   });
 });
+
