@@ -83,6 +83,12 @@ If injected code ever conflicts with the page or editor:
    - Change **Background color** and **Text color** using the color pickers; observe real-time color changes.
    - Toggle **Allow visitor to dismiss**; observe the accessible dismiss (X) button.
    - Toggle **Sticky / Stay at top when scrolling**; scroll the page and observe stickiness.
-7. Click **Publish changes** to persist your configuration to the backend worker / dev server.
+7. Click **Button styling pack**:
+   - Toggle **Enable custom button styles** ON.
+   - Adjust **Corner roundness** (e.g. `24px` for soft pill or `0px` for sharp rectangular modern aesthetic).
+   - Change **Hover animation** (e.g. `lift`, `scale`, `glow`, `shine`). Hover your cursor over any button on your Squarespace page to see the animation preview in real time!
+   - Change **Drop shadow depth** (e.g. `medium` or `dramatic`).
+   - (Optional) Toggle **Override template colors** ON and pick a solid or gradient background fill.
+8. Click **Publish changes** to persist your configuration to the backend worker / dev server.
 
 
