@@ -67,3 +67,22 @@ If injected code ever conflicts with the page or editor:
 1. **URL Kill Switch:** Append `?sitekit=off` to the URL. This completely skips execution.
 2. **Squarespace Safe Mode:** Append `/safe` after `/config` in the editor URL (e.g. `https://yoursite.squarespace.com/config/safe`) or toggle **"Disable Scripts in Preview"** in Settings. This halts all injected code entirely at the platform level.
 
+---
+
+## 5. Testing Features in the In-Editor Control Panel
+
+1. Start dev server and tunnel (`npm run dev` and `npm run tunnel`).
+2. Update the script tag in **Settings → Advanced → Code Injection → Footer** with the tunnel URL.
+3. Open the Squarespace editor (`/config/`).
+4. Click the **SiteKit** launcher pill in the bottom-right corner.
+5. In the feature list, both **Back to top button** and **Announcement bar** appear.
+6. Click **Announcement bar**:
+   - Toggle **Show announcement bar** ON.
+   - Edit **Announcement text**; observe the announcement bar appear at the top of the preview instantly.
+   - Enter **Button / Link URL** and **Button / Link text**; observe the inline link render.
+   - Change **Background color** and **Text color** using the color pickers; observe real-time color changes.
+   - Toggle **Allow visitor to dismiss**; observe the accessible dismiss (X) button.
+   - Toggle **Sticky / Stay at top when scrolling**; scroll the page and observe stickiness.
+7. Click **Publish changes** to persist your configuration to the backend worker / dev server.
+
+
