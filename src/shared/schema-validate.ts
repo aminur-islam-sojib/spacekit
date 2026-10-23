@@ -86,6 +86,67 @@ export function validateFeatureConfig<C extends Record<string, unknown>>(
     }
   }
 
+  // Support custom rules array (e.g. for textEffects multi-target feature)
+  if (Array.isArray(input.rules)) {
+    output.rules = input.rules
+      .filter((r): r is Record<string, unknown> => Boolean(r && typeof r === 'object' && !Array.isArray(r)))
+      .map((r) => ({
+        id: typeof r.id === 'string' ? sanitizeString(r.id.slice(0, 50)) : `rule_${Date.now()}`,
+        selector: typeof r.selector === 'string' ? sanitizeString(r.selector.slice(0, 200)) : '',
+        label: typeof r.label === 'string' ? sanitizeString(r.label.slice(0, 100)) : 'Text Element',
+        enabled: Boolean(r.enabled),
+        gradientEnabled: Boolean(r.gradientEnabled),
+        gradientStart:
+          typeof r.gradientStart === 'string' && COLOR_HEX_REGEX.test(r.gradientStart)
+            ? r.gradientStart
+            : '#4f46e5',
+        gradientEnd:
+          typeof r.gradientEnd === 'string' && COLOR_HEX_REGEX.test(r.gradientEnd)
+            ? r.gradientEnd
+            : '#06b6d4',
+        gradientAngle:
+          typeof r.gradientAngle === 'number' && Number.isFinite(r.gradientAngle)
+            ? r.gradientAngle
+            : 135,
+        gradientAnimate: Boolean(r.gradientAnimate),
+        highlightEnabled: Boolean(r.highlightEnabled),
+        highlightColor:
+          typeof r.highlightColor === 'string' && COLOR_HEX_REGEX.test(r.highlightColor)
+            ? r.highlightColor
+            : '#fef08a',
+        highlightStyle: ['underline', 'thick', 'full'].includes(r.highlightStyle as string)
+          ? r.highlightStyle
+          : 'underline',
+        underlineEnabled: Boolean(r.underlineEnabled),
+        underlineColor:
+          typeof r.underlineColor === 'string' && COLOR_HEX_REGEX.test(r.underlineColor)
+            ? r.underlineColor
+            : '#0f766e',
+        underlineThickness:
+          typeof r.underlineThickness === 'number' && Number.isFinite(r.underlineThickness)
+            ? r.underlineThickness
+            : 3,
+        underlineHover: ['always', 'hover'].includes(r.underlineHover as string)
+          ? r.underlineHover
+          : 'hover',
+        shadowEffect: ['none', 'subtle', 'glow', 'retro-3d', 'soft-drop'].includes(
+          r.shadowEffect as string
+        )
+          ? r.shadowEffect
+          : 'none',
+        shadowColor:
+          typeof r.shadowColor === 'string' && COLOR_HEX_REGEX.test(r.shadowColor)
+            ? r.shadowColor
+            : '#0f766e',
+        letterSpacing:
+          typeof r.letterSpacing === 'number' && Number.isFinite(r.letterSpacing)
+            ? r.letterSpacing
+            : 0,
+      }));
+  } else if ('rules' in defaults && Array.isArray((defaults as Record<string, unknown>).rules)) {
+    output.rules = (defaults as Record<string, unknown>).rules;
+  }
+
   return output as C;
 }
 

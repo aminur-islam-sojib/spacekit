@@ -1,5 +1,6 @@
 import type { Feature } from '../../shared/types.js';
 import { FieldControl } from './Controls.js';
+import { TextEffectsEditor } from './TextEffectsEditor.js';
 
 interface FeatureDetailProps {
   feature: Feature<Record<string, unknown>>;
@@ -16,6 +17,17 @@ export function FeatureDetail({
   onUpdateValue,
   onReset,
 }: FeatureDetailProps) {
+  if (feature.id === 'textEffects') {
+    return (
+      <TextEffectsEditor
+        config={config}
+        onBack={onBack}
+        onUpdateValue={onUpdateValue}
+        onReset={onReset}
+      />
+    );
+  }
+
   const hasGroups = feature.schema.some((f) => Boolean(f.group));
 
   const groups: { name: string; fields: typeof feature.schema }[] = [];

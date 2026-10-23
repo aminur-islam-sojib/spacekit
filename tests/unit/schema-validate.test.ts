@@ -92,6 +92,36 @@ describe('Schema Validator (TC-C05, TC-C16, TC-S01, TC-S02)', () => {
       expect(validateFeatureConfig(testSchema, null, testDefaults)).toEqual(testDefaults);
       expect(validateFeatureConfig(testSchema, 'invalid', testDefaults)).toEqual(testDefaults);
     });
+    it('TC-S01 & TC-S02: sanitizes rules array, drops malicious keys, and enforces valid colors', () => {
+      const raw = {
+        enabled: true,
+        rules: [
+          {
+            id: 'r1',
+            selector: '<script>alert(1)</script>#hero h1',
+            label: '<b>Hero Title</b>',
+            enabled: true,
+            gradientEnabled: true,
+            gradientStart: 'red;} body{display:none',
+            gradientEnd: '#123456',
+            maliciousProp: 'pwned',
+          },
+        ],
+      };
+
+      const result = validateFeatureConfig([], raw, { enabled: false, rules: [] }) as Record<
+        string,
+        unknown
+      >;
+      const rules = result.rules as Array<Record<string, unknown>>;
+      expect(rules).toHaveLength(1);
+      expect(rules[0].selector).not.toContain('<script>');
+      expect(rules[0].selector).toContain('&lt;script&gt;');
+      expect(rules[0].label).toContain('&lt;b&gt;');
+      expect(rules[0].gradientStart).toBe('#4f46e5'); // Invalid color reverted to safe default
+      expect(rules[0].gradientEnd).toBe('#123456');
+      expect(rules[0].maliciousProp).toBeUndefined();
+    });
   });
 
   describe('validateSiteKitConfig', () => {

@@ -1,9 +1,10 @@
 import type { Field } from '../../shared/types.js';
 
-export interface TextEffectsConfig extends Record<string, unknown> {
+export interface StyledTextRule {
+  id: string;
+  selector: string;
+  label: string;
   enabled: boolean;
-  target: 'h1' | 'h2' | 'h3' | 'headings' | 'all';
-  targetId: string;
 
   // Gradient text
   gradientEnabled: boolean;
@@ -16,7 +17,6 @@ export interface TextEffectsConfig extends Record<string, unknown> {
   highlightEnabled: boolean;
   highlightColor: string;
   highlightStyle: 'underline' | 'thick' | 'full';
-  highlightTarget: 'strong' | 'em' | 'all-target';
 
   // Creative underline
   underlineEnabled: boolean;
@@ -28,102 +28,49 @@ export interface TextEffectsConfig extends Record<string, unknown> {
   shadowEffect: 'none' | 'subtle' | 'glow' | 'retro-3d' | 'soft-drop';
   shadowColor: string;
 
-  // Letter spacing
+  // Typography
   letterSpacing: number;
+}
+
+export interface TextEffectsConfig extends Record<string, unknown> {
+  enabled: boolean;
+  rules: StyledTextRule[];
+}
+
+export function createDefaultTextRule(id: string = `rule_${Date.now()}`): StyledTextRule {
+  return {
+    id,
+    selector: '',
+    label: 'New text element',
+    enabled: true,
+
+    gradientEnabled: true,
+    gradientStart: '#4f46e5',
+    gradientEnd: '#06b6d4',
+    gradientAngle: 135,
+    gradientAnimate: false,
+
+    highlightEnabled: false,
+    highlightColor: '#fef08a',
+    highlightStyle: 'underline',
+
+    underlineEnabled: false,
+    underlineColor: '#0f766e',
+    underlineThickness: 3,
+    underlineHover: 'hover',
+
+    shadowEffect: 'none',
+    shadowColor: '#0f766e',
+
+    letterSpacing: 0,
+  };
 }
 
 export const textEffectsDefaults: TextEffectsConfig = {
   enabled: false,
-  target: 'h1',
-  targetId: '',
-
-  gradientEnabled: true,
-  gradientStart: '#4f46e5',
-  gradientEnd: '#06b6d4',
-  gradientAngle: 135,
-  gradientAnimate: false,
-
-  highlightEnabled: false,
-  highlightColor: '#fef08a',
-  highlightStyle: 'underline',
-  highlightTarget: 'strong',
-
-  underlineEnabled: false,
-  underlineColor: '#0f766e',
-  underlineThickness: 3,
-  underlineHover: 'hover',
-
-  shadowEffect: 'none',
-  shadowColor: '#0f766e',
-
-  letterSpacing: 0,
+  rules: [],
 };
 
 export const textEffectsSchema: Field[] = [
-  // Activation
   { key: 'enabled', type: 'toggle', label: 'Enable text & heading effects', group: 'Activation' },
-  {
-    key: 'target',
-    type: 'select',
-    label: 'Target elements',
-    options: ['h1', 'h2', 'h3', 'headings', 'all'],
-    group: 'Activation',
-  },
-  {
-    key: 'targetId',
-    type: 'text',
-    label: 'Target Block ID or Section ID (optional)',
-    maxLength: 250,
-    group: 'Activation',
-  },
-
-  // Gradient Headline
-  { key: 'gradientEnabled', type: 'toggle', label: 'Enable gradient text', group: 'Gradient Text' },
-  { key: 'gradientStart', type: 'color', label: 'Gradient start', group: 'Gradient Text' },
-  { key: 'gradientEnd', type: 'color', label: 'Gradient end', group: 'Gradient Text' },
-  { key: 'gradientAngle', type: 'range', label: 'Gradient angle', min: 0, max: 360, step: 15, unit: 'deg', group: 'Gradient Text' },
-  { key: 'gradientAnimate', type: 'toggle', label: 'Animate shifting gradient', group: 'Gradient Text' },
-
-  // Highlighter / Marker
-  { key: 'highlightEnabled', type: 'toggle', label: 'Enable marker highlighter', group: 'Highlighter' },
-  { key: 'highlightColor', type: 'color', label: 'Highlighter color', group: 'Highlighter' },
-  {
-    key: 'highlightStyle',
-    type: 'select',
-    label: 'Highlight height',
-    options: ['underline', 'thick', 'full'],
-    group: 'Highlighter',
-  },
-  {
-    key: 'highlightTarget',
-    type: 'select',
-    label: 'Words to highlight',
-    options: ['strong', 'em', 'all-target'],
-    group: 'Highlighter',
-  },
-
-  // Creative Underline
-  { key: 'underlineEnabled', type: 'toggle', label: 'Enable accent underline', group: 'Accent Underline' },
-  { key: 'underlineColor', type: 'color', label: 'Underline color', group: 'Accent Underline' },
-  { key: 'underlineThickness', type: 'range', label: 'Thickness', min: 1, max: 8, step: 1, unit: 'px', group: 'Accent Underline' },
-  {
-    key: 'underlineHover',
-    type: 'select',
-    label: 'Underline trigger',
-    options: ['hover', 'always'],
-    group: 'Accent Underline',
-  },
-
-  // Shadow & Glow
-  {
-    key: 'shadowEffect',
-    type: 'select',
-    label: 'Shadow / Glow preset',
-    options: ['none', 'subtle', 'soft-drop', 'glow', 'retro-3d'],
-    group: 'Shadow & Glow',
-  },
-  { key: 'shadowColor', type: 'color', label: 'Shadow / Glow color', group: 'Shadow & Glow' },
-
-  // Typography
-  { key: 'letterSpacing', type: 'range', label: 'Letter spacing', min: -2, max: 10, step: 0.5, unit: 'px', group: 'Typography' },
 ];
