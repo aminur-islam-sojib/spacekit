@@ -147,7 +147,10 @@ export class EditorStore {
       return;
     }
 
-    const isLocal = configUrl.includes('localhost') || configUrl.includes('127.0.0.1');
+    const isLocal =
+      configUrl.includes('localhost') ||
+      configUrl.includes('127.0.0.1') ||
+      configUrl.includes('trycloudflare.com');
     const token = isLocal
       ? this.loadToken() || 'local-dev-token'
       : this.loadToken() || prompt('SiteKit Admin Token:');
