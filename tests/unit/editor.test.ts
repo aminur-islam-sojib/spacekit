@@ -274,9 +274,54 @@ describe('Editor Panel (TC-E04, TC-E05, TC-E08, TC-E09, TC-E10, TC-E11, TC-E12)'
       btn.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
     });
 
-    // Panel should have navigated to Button Designs
-    expect(shadow.querySelector('h2')?.textContent).toBe('Button Designs');
+    // Panel should have navigated to Button
+    expect(shadow.querySelector('h2')?.textContent).toBe('Button');
     expect(shadow.querySelector('.button-styles-editor')).not.toBeNull();
+  });
+
+  it('TC-E16: renders single focused property inspector when element is selected, without showing other element cards, and deselects with Done button', () => {
+    registry.register(buttonStylesFeature);
+    const btn1 = document.createElement('a');
+    btn1.id = 'btn-1';
+    btn1.className = 'sqs-block-button-element';
+    btn1.textContent = 'Button One';
+    const btn2 = document.createElement('a');
+    btn2.id = 'btn-2';
+    btn2.className = 'sqs-block-button-element';
+    btn2.textContent = 'Button Two';
+    document.body.appendChild(btn1);
+    document.body.appendChild(btn2);
+
+    act(() => {
+      mountEditor();
+    });
+    const shadow = document.getElementById('sitekit-host')!.shadowRoot!;
+    act(() => {
+      (shadow.querySelector('.fab') as HTMLButtonElement).click();
+    });
+
+    // Click btn1
+    act(() => {
+      btn1.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+    });
+
+    // Inspector should focus ONLY on btn1
+    expect(shadow.querySelector('.editing-badge')?.textContent).toContain('Editing: Button');
+    expect(shadow.querySelector('.editing-badge')?.textContent).toContain('Done');
+    expect(shadow.querySelector('.focused-inspector')).not.toBeNull();
+    // No stacked card forms for other elements
+    expect(shadow.querySelectorAll('.rule-card').length).toBe(0);
+
+    // Click Done to deselect
+    const doneBtn = shadow.querySelector('.editing-done-btn') as HTMLButtonElement;
+    expect(doneBtn).not.toBeNull();
+    act(() => {
+      doneBtn.click();
+    });
+
+    // Active inspector clears, shows idle empty-selection prompt
+    expect(shadow.querySelector('.editing-badge')).toBeNull();
+    expect(shadow.querySelector('.empty-selection-card')).not.toBeNull();
   });
 });
 

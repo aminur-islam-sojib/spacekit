@@ -395,3 +395,93 @@ export function startInspector(options: InspectorOptions): () => void {
     highlight.remove();
   };
 }
+
+let activeSelectionCleanup: (() => void) | null = null;
+
+export function setActiveCanvasSelection(
+  selector: string | null,
+  label: string = '',
+  onDone?: () => void
+): void {
+  if (typeof document === 'undefined') return;
+
+  if (activeSelectionCleanup) {
+    activeSelectionCleanup();
+    activeSelectionCleanup = null;
+  }
+
+  if (!selector) return;
+
+  const targetEl = document.querySelector(selector) as HTMLElement | null;
+  if (!targetEl) return;
+
+  const frame = document.createElement('div');
+  frame.setAttribute('data-sk', 'active-selection');
+  frame.style.cssText =
+    'position:fixed;pointer-events:none;border:2px solid #0f766e;border-radius:8px;z-index:2147483644;box-sizing:border-box;box-shadow:0 0 0 3px rgba(15,118,110,0.25), 0 4px 16px rgba(15,118,110,0.3);transition:top 0.1s ease, left 0.1s ease, width 0.1s ease, height 0.1s ease;';
+
+  const miniToolbar = document.createElement('div');
+  miniToolbar.style.cssText =
+    'position:absolute;top:-30px;left:0;display:flex;align-items:center;gap:6px;pointer-events:auto;background:#0f766e;color:#fff;font-size:11px;font-weight:600;padding:3px 8px;border-radius:6px;box-shadow:0 2px 8px rgba(0,0,0,0.25);font-family:system-ui,-apple-system,sans-serif;line-height:1;white-space:nowrap;';
+
+  const labelSpan = document.createElement('span');
+  labelSpan.textContent = `🎯 ${label || 'Selected Element'}`;
+  miniToolbar.appendChild(labelSpan);
+
+  if (onDone) {
+    const doneBtn = document.createElement('button');
+    doneBtn.type = 'button';
+    doneBtn.textContent = '✕ Done';
+    doneBtn.style.cssText =
+      'border:0;background:rgba(255,255,255,0.25);color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;cursor:pointer;line-height:1;transition:background 0.15s;';
+    doneBtn.onmouseenter = () => {
+      doneBtn.style.background = 'rgba(255,255,255,0.4)';
+    };
+    doneBtn.onmouseleave = () => {
+      doneBtn.style.background = 'rgba(255,255,255,0.25)';
+    };
+    doneBtn.onclick = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      onDone();
+    };
+    miniToolbar.appendChild(doneBtn);
+  }
+
+  frame.appendChild(miniToolbar);
+  document.body.appendChild(frame);
+
+  const updatePos = () => {
+    if (!document.body.contains(targetEl)) {
+      frame.remove();
+      return;
+    }
+    const rect = targetEl.getBoundingClientRect();
+    frame.style.top = `${rect.top - 3}px`;
+    frame.style.left = `${rect.left - 3}px`;
+    frame.style.width = `${rect.width + 6}px`;
+    frame.style.height = `${rect.height + 6}px`;
+  };
+
+  updatePos();
+  window.addEventListener('scroll', updatePos, true);
+  window.addEventListener('resize', updatePos);
+
+  activeSelectionCleanup = () => {
+    window.removeEventListener('scroll', updatePos, true);
+    window.removeEventListener('resize', updatePos);
+    frame.remove();
+  };
+}
+
+export function clearActiveCanvasSelection(): void {
+  if (activeSelectionCleanup) {
+    activeSelectionCleanup();
+    activeSelectionCleanup = null;
+  }
+  if (typeof document !== 'undefined') {
+    const existing = document.querySelectorAll('[data-sk="active-selection"]');
+    existing.forEach((el) => el.remove());
+  }
+}
+

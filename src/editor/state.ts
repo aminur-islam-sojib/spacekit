@@ -9,6 +9,7 @@ export interface EditorPosition {
 export interface EditorState {
   open: boolean;
   activeFeatureId: string | null;
+  activeTargetSelector: string | null;
   searchQuery: string;
   position: EditorPosition | null;
   draft: SiteKitConfig;
@@ -32,6 +33,7 @@ export class EditorStore {
     this.state = {
       open: this.loadOpenState(),
       activeFeatureId: null,
+      activeTargetSelector: null,
       searchQuery: '',
       position: this.loadPosition(),
       draft: storedDraft || { ...cachedConfig },
@@ -70,6 +72,11 @@ export class EditorStore {
 
   setActiveFeatureId(id: string | null): void {
     this.state.activeFeatureId = id;
+    this.notify();
+  }
+
+  setActiveTargetSelector(sel: string | null): void {
+    this.state.activeTargetSelector = sel;
     this.notify();
   }
 

@@ -8,6 +8,7 @@ interface PanelProps {
   open: boolean;
   position: EditorPosition | null;
   activeFeatureId: string | null;
+  activeTargetSelector?: string | null;
   searchQuery: string;
   status: string;
   features: Feature<Record<string, unknown>>[];
@@ -16,6 +17,7 @@ interface PanelProps {
   onPositionChange: (pos: EditorPosition) => void;
   onSearchChange: (q: string) => void;
   onSelectFeature: (id: string | null) => void;
+  onSelectTargetSelector?: (sel: string | null) => void;
   onUpdateFeatureValue: (feature: Feature<Record<string, unknown>>, key: string, value: unknown) => void;
   onResetFeature: (feature: Feature<Record<string, unknown>>) => void;
   onPublish: () => void;
@@ -25,6 +27,7 @@ export function Panel({
   open,
   position,
   activeFeatureId,
+  activeTargetSelector,
   searchQuery,
   status,
   features,
@@ -33,6 +36,7 @@ export function Panel({
   onPositionChange,
   onSearchChange,
   onSelectFeature,
+  onSelectTargetSelector,
   onUpdateFeatureValue,
   onResetFeature,
   onPublish,
@@ -207,7 +211,12 @@ export function Panel({
           <FeatureDetail
             feature={activeFeature}
             config={getFeatureConfig(activeFeature.id)}
-            onBack={() => onSelectFeature(null)}
+            activeSelector={activeTargetSelector}
+            onSelectSelector={onSelectTargetSelector}
+            onBack={() => {
+              onSelectTargetSelector?.(null);
+              onSelectFeature(null);
+            }}
             onUpdateValue={(key, val) => onUpdateFeatureValue(activeFeature, key, val)}
             onReset={() => onResetFeature(activeFeature)}
           />

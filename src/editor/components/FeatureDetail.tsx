@@ -6,6 +6,8 @@ import { ButtonStylesEditor } from './ButtonStylesEditor.js';
 interface FeatureDetailProps {
   feature: Feature<Record<string, unknown>>;
   config: Record<string, unknown>;
+  activeSelector?: string | null;
+  onSelectSelector?: (sel: string | null) => void;
   onBack: () => void;
   onUpdateValue: (key: string, value: unknown) => void;
   onReset: () => void;
@@ -14,6 +16,8 @@ interface FeatureDetailProps {
 export function FeatureDetail({
   feature,
   config,
+  activeSelector,
+  onSelectSelector,
   onBack,
   onUpdateValue,
   onReset,
@@ -22,6 +26,8 @@ export function FeatureDetail({
     return (
       <ButtonStylesEditor
         config={config}
+        activeSelector={activeSelector}
+        onSelectSelector={onSelectSelector}
         onBack={onBack}
         onUpdateValue={onUpdateValue}
         onReset={onReset}
@@ -33,6 +39,8 @@ export function FeatureDetail({
     return (
       <TextEffectsEditor
         config={config}
+        activeSelector={activeSelector}
+        onSelectSelector={onSelectSelector}
         onBack={onBack}
         onUpdateValue={onUpdateValue}
         onReset={onReset}

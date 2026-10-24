@@ -5,6 +5,8 @@ import { startPicker } from '../picker.js';
 
 interface ButtonStylesEditorProps {
   config: Record<string, unknown>;
+  activeSelector?: string | null;
+  onSelectSelector?: (sel: string | null) => void;
   onBack: () => void;
   onUpdateValue: (key: string, value: unknown) => void;
   onReset: () => void;
@@ -12,25 +14,37 @@ interface ButtonStylesEditorProps {
 
 export function ButtonStylesEditor({
   config,
+  activeSelector,
+  onSelectSelector,
   onBack,
   onUpdateValue,
   onReset,
 }: ButtonStylesEditorProps) {
   const [isPicking, setIsPicking] = useState(false);
-  const [pickingRuleId, setPickingRuleId] = useState<string | null>(null);
+  const [showDrawer, setShowDrawer] = useState(false);
 
   const cfg = config as unknown as ButtonStylesConfig;
   const enabled = Boolean(cfg.enabled);
   const rules = Array.isArray(cfg.rules) ? cfg.rules : [];
 
+  // Determine which rule is actively being edited
+  const activeRule = activeSelector
+    ? rules.find((r) => r.selector === activeSelector) || null
+    : null;
+
   const handlePickNew = () => {
     setIsPicking(true);
-    setPickingRuleId(null);
 
     startPicker({
       filterKind: 'button',
       onSelect: (target) => {
         setIsPicking(false);
+        const existingRule = rules.find((r) => r.selector === target.selector);
+        if (existingRule) {
+          onSelectSelector?.(existingRule.selector);
+          return;
+        }
+
         const newRule: StyledButtonRule = {
           ...createDefaultButtonRule(),
           selector: target.selector,
@@ -41,32 +55,10 @@ export function ButtonStylesEditor({
         if (!enabled) {
           onUpdateValue('enabled', true);
         }
+        onSelectSelector?.(newRule.selector);
       },
       onCancel: () => {
         setIsPicking(false);
-      },
-    });
-  };
-
-  const handleRePick = (ruleId: string) => {
-    setIsPicking(true);
-    setPickingRuleId(ruleId);
-
-    startPicker({
-      filterKind: 'button',
-      onSelect: (target) => {
-        setIsPicking(false);
-        setPickingRuleId(null);
-        const nextRules = rules.map((r) =>
-          r.id === ruleId
-            ? { ...r, selector: target.selector, label: target.label }
-            : r
-        );
-        onUpdateValue('rules', nextRules);
-      },
-      onCancel: () => {
-        setIsPicking(false);
-        setPickingRuleId(null);
       },
     });
   };
@@ -74,14 +66,17 @@ export function ButtonStylesEditor({
   const handleDeleteRule = (ruleId: string) => {
     const nextRules = rules.filter((r) => r.id !== ruleId);
     onUpdateValue('rules', nextRules);
+    if (activeRule && activeRule.id === ruleId) {
+      onSelectSelector?.(null);
+    }
   };
 
-  const handleUpdateRule = <K extends keyof StyledButtonRule>(
-    ruleId: string,
+  const handleUpdateActiveRule = <K extends keyof StyledButtonRule>(
     key: K,
     val: StyledButtonRule[K]
   ) => {
-    const nextRules = rules.map((r) => (r.id === ruleId ? { ...r, [key]: val } : r));
+    if (!activeRule) return;
+    const nextRules = rules.map((r) => (r.id === activeRule.id ? { ...r, [key]: val } : r));
     onUpdateValue('rules', nextRules);
   };
 
@@ -102,7 +97,23 @@ export function ButtonStylesEditor({
         </svg>
         <span>All features</span>
       </button>
-      <h2>Button Designs</h2>
+
+      <div class="detail-header-row">
+        <h2 class="detail-title">Button</h2>
+        {activeRule ? (
+          <div class="editing-badge">
+            <span>Editing: {activeRule.label.length > 18 ? `${activeRule.label.slice(0, 18)}…` : activeRule.label}</span>
+            <button
+              type="button"
+              class="editing-done-btn"
+              onClick={() => onSelectSelector?.(null)}
+              title="Deselect this button"
+            >
+              Done
+            </button>
+          </div>
+        ) : null}
+      </div>
 
       {/* Activation card */}
       <div class="field-group">
@@ -117,354 +128,344 @@ export function ButtonStylesEditor({
         </label>
       </div>
 
+      {activeRule ? (
+        /* SINGLE FOCUSED ELEMENT PROPERTY INSPECTOR */
+        <div class="focused-inspector">
+          {/* Shape & Border */}
+          <div class="field-group">
+            <div class="field-group-title">Shape & Border</div>
+            <label>
+              <span>
+                Corner roundness <b>{activeRule.radius}px</b>
+              </span>
+              <input
+                type="range"
+                min="0"
+                max="50"
+                value={activeRule.radius}
+                onInput={(e) =>
+                  handleUpdateActiveRule(
+                    'radius',
+                    Number((e.target as HTMLInputElement).value)
+                  )
+                }
+              />
+            </label>
+            <label>
+              <span>
+                Border thickness <b>{activeRule.borderWidth}px</b>
+              </span>
+              <input
+                type="range"
+                min="0"
+                max="6"
+                value={activeRule.borderWidth}
+                onInput={(e) =>
+                  handleUpdateActiveRule(
+                    'borderWidth',
+                    Number((e.target as HTMLInputElement).value)
+                  )
+                }
+              />
+            </label>
+            {activeRule.borderWidth > 0 && (
+              <>
+                <label>
+                  <span>Border style</span>
+                  <select
+                    value={activeRule.borderStyle}
+                    onChange={(e) =>
+                      handleUpdateActiveRule(
+                        'borderStyle',
+                        (e.target as HTMLSelectElement).value as StyledButtonRule['borderStyle']
+                      )
+                    }
+                  >
+                    <option value="solid">Solid</option>
+                    <option value="dashed">Dashed</option>
+                    <option value="double">Double</option>
+                  </select>
+                </label>
+                <label>
+                  <span>Border color</span>
+                  <input
+                    type="color"
+                    value={activeRule.borderColor}
+                    onInput={(e) =>
+                      handleUpdateActiveRule('borderColor', (e.target as HTMLInputElement).value)
+                    }
+                  />
+                </label>
+              </>
+            )}
+          </div>
+
+          {/* Colors & Fills */}
+          <div class="field-group">
+            <div class="field-group-title">Colors & Fills</div>
+            <label class="row">
+              <span>Use custom colors</span>
+              <input
+                type="checkbox"
+                checked={activeRule.customColors}
+                onChange={(e) =>
+                  handleUpdateActiveRule(
+                    'customColors',
+                    (e.target as HTMLInputElement).checked
+                  )
+                }
+              />
+            </label>
+            {activeRule.customColors && (
+              <>
+                <label>
+                  <span>Background color</span>
+                  <input
+                    type="color"
+                    value={activeRule.bg}
+                    onInput={(e) =>
+                      handleUpdateActiveRule('bg', (e.target as HTMLInputElement).value)
+                    }
+                  />
+                </label>
+                <label class="row">
+                  <span>Gradient fill</span>
+                  <input
+                    type="checkbox"
+                    checked={activeRule.useGradient}
+                    onChange={(e) =>
+                      handleUpdateActiveRule(
+                        'useGradient',
+                        (e.target as HTMLInputElement).checked
+                      )
+                    }
+                  />
+                </label>
+                {activeRule.useGradient && (
+                  <>
+                    <label>
+                      <span>Gradient end color</span>
+                      <input
+                        type="color"
+                        value={activeRule.bgGradientEnd}
+                        onInput={(e) =>
+                          handleUpdateActiveRule(
+                            'bgGradientEnd',
+                            (e.target as HTMLInputElement).value
+                          )
+                        }
+                      />
+                    </label>
+                    <label>
+                      <span>
+                        Gradient angle <b>{activeRule.gradientAngle}&deg;</b>
+                      </span>
+                      <input
+                        type="range"
+                        min="0"
+                        max="360"
+                        value={activeRule.gradientAngle}
+                        onInput={(e) =>
+                          handleUpdateActiveRule(
+                            'gradientAngle',
+                            Number((e.target as HTMLInputElement).value)
+                          )
+                        }
+                      />
+                    </label>
+                  </>
+                )}
+                <label>
+                  <span>Text color</span>
+                  <input
+                    type="color"
+                    value={activeRule.fg}
+                    onInput={(e) =>
+                      handleUpdateActiveRule('fg', (e.target as HTMLInputElement).value)
+                    }
+                  />
+                </label>
+              </>
+            )}
+          </div>
+
+          {/* Hover & Depth */}
+          <div class="field-group">
+            <div class="field-group-title">Hover & Depth</div>
+            <label>
+              <span>Hover animation</span>
+              <select
+                value={activeRule.hoverEffect}
+                onChange={(e) =>
+                  handleUpdateActiveRule(
+                    'hoverEffect',
+                    (e.target as HTMLSelectElement).value as StyledButtonRule['hoverEffect']
+                  )
+                }
+              >
+                <option value="none">None</option>
+                <option value="lift">Lift (-3px)</option>
+                <option value="scale">Scale up</option>
+                <option value="glow">Glow</option>
+                <option value="shine">Shine</option>
+              </select>
+            </label>
+            <label>
+              <span>Drop shadow depth</span>
+              <select
+                value={activeRule.shadow}
+                onChange={(e) =>
+                  handleUpdateActiveRule(
+                    'shadow',
+                    (e.target as HTMLSelectElement).value as StyledButtonRule['shadow']
+                  )
+                }
+              >
+                <option value="none">None</option>
+                <option value="subtle">Subtle</option>
+                <option value="medium">Medium</option>
+                <option value="dramatic">Dramatic</option>
+                <option value="colored">Colored tint</option>
+              </select>
+            </label>
+          </div>
+
+          {/* Sizing & Typography */}
+          <div class="field-group">
+            <div class="field-group-title">Sizing & Typography</div>
+            <label>
+              <span>
+                Vertical padding <b>{activeRule.paddingY}px</b>
+              </span>
+              <input
+                type="range"
+                min="6"
+                max="24"
+                value={activeRule.paddingY}
+                onInput={(e) =>
+                  handleUpdateActiveRule(
+                    'paddingY',
+                    Number((e.target as HTMLInputElement).value)
+                  )
+                }
+              />
+            </label>
+            <label>
+              <span>
+                Horizontal padding <b>{activeRule.paddingX}px</b>
+              </span>
+              <input
+                type="range"
+                min="14"
+                max="48"
+                value={activeRule.paddingX}
+                onInput={(e) =>
+                  handleUpdateActiveRule(
+                    'paddingX',
+                    Number((e.target as HTMLInputElement).value)
+                  )
+                }
+              />
+            </label>
+            <label>
+              <span>Font weight</span>
+              <select
+                value={activeRule.fontWeight}
+                onChange={(e) =>
+                  handleUpdateActiveRule('fontWeight', (e.target as HTMLSelectElement).value)
+                }
+              >
+                <option value="normal">Normal</option>
+                <option value="500">500 Medium</option>
+                <option value="600">600 Semi-Bold</option>
+                <option value="700">700 Bold</option>
+                <option value="800">800 Extra-Bold</option>
+              </select>
+            </label>
+            <label>
+              <span>
+                Letter spacing <b>{activeRule.letterSpacing}px</b>
+              </span>
+              <input
+                type="range"
+                min="0"
+                max="4"
+                value={activeRule.letterSpacing}
+                onInput={(e) =>
+                  handleUpdateActiveRule(
+                    'letterSpacing',
+                    Number((e.target as HTMLInputElement).value)
+                  )
+                }
+              />
+            </label>
+          </div>
+
+          <button
+            type="button"
+            class="reset-btn"
+            style="margin-bottom: 12px;"
+            onClick={() => handleDeleteRule(activeRule.id)}
+          >
+            Remove styling from this button
+          </button>
+        </div>
+      ) : (
+        /* IDLE STATE: No element actively focused */
+        <div class="empty-selection-card">
+          <div class="empty-icon">🔘</div>
+          <p>
+            <b>No button selected</b><br />
+            Click any button on your page to style it.
+          </p>
+        </div>
+      )}
+
       {/* Pick Button */}
       <button
         type="button"
         class={`picker-btn ${isPicking ? 'picking' : ''}`}
         onClick={handlePickNew}
       >
-        {isPicking && !pickingRuleId
-          ? '🎯 Hover & Click button on page... (Esc to cancel)'
+        {isPicking
+          ? '🎯 Click button on page... (Esc to cancel)'
           : '🎯 Click to Select Button on Page'}
       </button>
 
-      {/* List of styled buttons */}
-      {rules.length === 0 ? (
-        <div class="empty-rules-card">
-          <div class="empty-icon">🔘</div>
-          <p>
-            No buttons selected yet.<br />
-            Click <b>"🎯 Click to Select Button on Page"</b> above to choose any button on your page!
-          </p>
-        </div>
-      ) : (
-        <div class="rules-list">
-          {rules.map((rule, idx) => {
-            const isThisPicking = isPicking && pickingRuleId === rule.id;
-            return (
-              <div class="rule-card" key={rule.id}>
-                {/* Header */}
-                <div class="rule-header">
-                  <div class="rule-title-group">
-                    <input
-                      type="checkbox"
-                      checked={rule.enabled}
-                      onChange={(e) =>
-                        handleUpdateRule(rule.id, 'enabled', (e.target as HTMLInputElement).checked)
-                      }
-                      title="Toggle this button style"
-                    />
-                    <div>
-                      <div class="rule-label">
-                        #{idx + 1}: {rule.label}
-                      </div>
-                      <code class="rule-selector">{rule.selector || 'No selector'}</code>
-                    </div>
+      {/* Collapsed Drawer of all configured buttons */}
+      {rules.length > 0 && (
+        <div class="styled-drawer">
+          <button
+            type="button"
+            class="styled-drawer-trigger"
+            onClick={() => setShowDrawer(!showDrawer)}
+          >
+            <span>📋 Styled buttons on this site ({rules.length})</span>
+            <span>{showDrawer ? '▴' : '▾'}</span>
+          </button>
+          {showDrawer && (
+            <ul class="styled-drawer-list">
+              {rules.map((r) => (
+                <li key={r.id} class="styled-drawer-item">
+                  <div
+                    class="styled-drawer-label"
+                    onClick={() => onSelectSelector?.(r.selector)}
+                  >
+                    {r.label}
+                    <span class="styled-drawer-selector">{r.selector}</span>
                   </div>
-                  <div class="rule-actions">
-                    <button
-                      type="button"
-                      class="mini-btn"
-                      title="Pick a different button on page"
-                      onClick={() => handleRePick(rule.id)}
-                    >
-                      {isThisPicking ? 'Picking...' : '🎯 Re-pick'}
-                    </button>
-                    <button
-                      type="button"
-                      class="mini-btn delete"
-                      title="Remove this button design"
-                      onClick={() => handleDeleteRule(rule.id)}
-                    >
-                      &#10005;
-                    </button>
-                  </div>
-                </div>
-
-                {/* Shape & Border */}
-                <div class="sub-group">
-                  <div class="sub-title">Shape & Border</div>
-                  <label>
-                    <span>
-                      Corner roundness <b>{rule.radius}px</b>
-                    </span>
-                    <input
-                      type="range"
-                      min="0"
-                      max="50"
-                      value={rule.radius}
-                      onInput={(e) =>
-                        handleUpdateRule(
-                          rule.id,
-                          'radius',
-                          Number((e.target as HTMLInputElement).value)
-                        )
-                      }
-                    />
-                  </label>
-                  <label>
-                    <span>
-                      Border thickness <b>{rule.borderWidth}px</b>
-                    </span>
-                    <input
-                      type="range"
-                      min="0"
-                      max="6"
-                      value={rule.borderWidth}
-                      onInput={(e) =>
-                        handleUpdateRule(
-                          rule.id,
-                          'borderWidth',
-                          Number((e.target as HTMLInputElement).value)
-                        )
-                      }
-                    />
-                  </label>
-                  {rule.borderWidth > 0 && (
-                    <>
-                      <label>
-                        <span>Border style</span>
-                        <select
-                          value={rule.borderStyle}
-                          onChange={(e) =>
-                            handleUpdateRule(
-                              rule.id,
-                              'borderStyle',
-                              (e.target as HTMLSelectElement).value as StyledButtonRule['borderStyle']
-                            )
-                          }
-                        >
-                          <option value="solid">Solid</option>
-                          <option value="dashed">Dashed</option>
-                          <option value="double">Double</option>
-                        </select>
-                      </label>
-                      <label>
-                        <span>Border color</span>
-                        <input
-                          type="color"
-                          value={rule.borderColor}
-                          onInput={(e) =>
-                            handleUpdateRule(rule.id, 'borderColor', (e.target as HTMLInputElement).value)
-                          }
-                        />
-                      </label>
-                    </>
-                  )}
-                </div>
-
-                {/* Colors & Gradient */}
-                <div class="sub-group">
-                  <div class="sub-title">Colors & Fills</div>
-                  <label class="row">
-                    <span>Use custom colors</span>
-                    <input
-                      type="checkbox"
-                      checked={rule.customColors}
-                      onChange={(e) =>
-                        handleUpdateRule(
-                          rule.id,
-                          'customColors',
-                          (e.target as HTMLInputElement).checked
-                        )
-                      }
-                    />
-                  </label>
-                  {rule.customColors && (
-                    <>
-                      <label>
-                        <span>Background color</span>
-                        <input
-                          type="color"
-                          value={rule.bg}
-                          onInput={(e) =>
-                            handleUpdateRule(rule.id, 'bg', (e.target as HTMLInputElement).value)
-                          }
-                        />
-                      </label>
-                      <label class="row">
-                        <span>Gradient fill</span>
-                        <input
-                          type="checkbox"
-                          checked={rule.useGradient}
-                          onChange={(e) =>
-                            handleUpdateRule(
-                              rule.id,
-                              'useGradient',
-                              (e.target as HTMLInputElement).checked
-                            )
-                          }
-                        />
-                      </label>
-                      {rule.useGradient && (
-                        <>
-                          <label>
-                            <span>Gradient end color</span>
-                            <input
-                              type="color"
-                              value={rule.bgGradientEnd}
-                              onInput={(e) =>
-                                handleUpdateRule(
-                                  rule.id,
-                                  'bgGradientEnd',
-                                  (e.target as HTMLInputElement).value
-                                )
-                              }
-                            />
-                          </label>
-                          <label>
-                            <span>
-                              Gradient angle <b>{rule.gradientAngle}&deg;</b>
-                            </span>
-                            <input
-                              type="range"
-                              min="0"
-                              max="360"
-                              value={rule.gradientAngle}
-                              onInput={(e) =>
-                                handleUpdateRule(
-                                  rule.id,
-                                  'gradientAngle',
-                                  Number((e.target as HTMLInputElement).value)
-                                )
-                              }
-                            />
-                          </label>
-                        </>
-                      )}
-                      <label>
-                        <span>Text color</span>
-                        <input
-                          type="color"
-                          value={rule.fg}
-                          onInput={(e) =>
-                            handleUpdateRule(rule.id, 'fg', (e.target as HTMLInputElement).value)
-                          }
-                        />
-                      </label>
-                    </>
-                  )}
-                </div>
-
-                {/* Hover & Depth */}
-                <div class="sub-group">
-                  <div class="sub-title">Hover & Depth</div>
-                  <label>
-                    <span>Hover animation</span>
-                    <select
-                      value={rule.hoverEffect}
-                      onChange={(e) =>
-                        handleUpdateRule(
-                          rule.id,
-                          'hoverEffect',
-                          (e.target as HTMLSelectElement).value as StyledButtonRule['hoverEffect']
-                        )
-                      }
-                    >
-                      <option value="none">None</option>
-                      <option value="lift">Lift (-3px)</option>
-                      <option value="scale">Scale up</option>
-                      <option value="glow">Glow</option>
-                      <option value="shine">Shine</option>
-                    </select>
-                  </label>
-                  <label>
-                    <span>Drop shadow depth</span>
-                    <select
-                      value={rule.shadow}
-                      onChange={(e) =>
-                        handleUpdateRule(
-                          rule.id,
-                          'shadow',
-                          (e.target as HTMLSelectElement).value as StyledButtonRule['shadow']
-                        )
-                      }
-                    >
-                      <option value="none">None</option>
-                      <option value="subtle">Subtle</option>
-                      <option value="medium">Medium</option>
-                      <option value="dramatic">Dramatic</option>
-                      <option value="colored">Colored tint</option>
-                    </select>
-                  </label>
-                </div>
-
-                {/* Sizing & Typography */}
-                <div class="sub-group">
-                  <div class="sub-title">Sizing & Typography</div>
-                  <label>
-                    <span>
-                      Vertical padding <b>{rule.paddingY}px</b>
-                    </span>
-                    <input
-                      type="range"
-                      min="6"
-                      max="24"
-                      value={rule.paddingY}
-                      onInput={(e) =>
-                        handleUpdateRule(
-                          rule.id,
-                          'paddingY',
-                          Number((e.target as HTMLInputElement).value)
-                        )
-                      }
-                    />
-                  </label>
-                  <label>
-                    <span>
-                      Horizontal padding <b>{rule.paddingX}px</b>
-                    </span>
-                    <input
-                      type="range"
-                      min="14"
-                      max="48"
-                      value={rule.paddingX}
-                      onInput={(e) =>
-                        handleUpdateRule(
-                          rule.id,
-                          'paddingX',
-                          Number((e.target as HTMLInputElement).value)
-                        )
-                      }
-                    />
-                  </label>
-                  <label>
-                    <span>Font weight</span>
-                    <select
-                      value={rule.fontWeight}
-                      onChange={(e) =>
-                        handleUpdateRule(rule.id, 'fontWeight', (e.target as HTMLSelectElement).value)
-                      }
-                    >
-                      <option value="normal">Normal</option>
-                      <option value="500">500 Medium</option>
-                      <option value="600">600 Semi-Bold</option>
-                      <option value="700">700 Bold</option>
-                      <option value="800">800 Extra-Bold</option>
-                    </select>
-                  </label>
-                  <label>
-                    <span>
-                      Letter spacing <b>{rule.letterSpacing}px</b>
-                    </span>
-                    <input
-                      type="range"
-                      min="0"
-                      max="4"
-                      value={rule.letterSpacing}
-                      onInput={(e) =>
-                        handleUpdateRule(
-                          rule.id,
-                          'letterSpacing',
-                          Number((e.target as HTMLInputElement).value)
-                        )
-                      }
-                    />
-                  </label>
-                </div>
-              </div>
-            );
-          })}
+                  <button
+                    type="button"
+                    class="drawer-del-btn"
+                    title="Remove styling"
+                    onClick={() => handleDeleteRule(r.id)}
+                  >
+                    ✕
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       )}
 
@@ -474,4 +475,3 @@ export function ButtonStylesEditor({
     </div>
   );
 }
-

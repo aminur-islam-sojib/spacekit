@@ -3,7 +3,12 @@ import type { EditorStore } from '../state.js';
 import { registry } from '../../core/index.js';
 import { Launcher } from './Launcher.js';
 import { Panel } from './Panel.js';
-import { startInspector, type PickedTarget } from '../picker.js';
+import {
+  startInspector,
+  type PickedTarget,
+  setActiveCanvasSelection,
+  clearActiveCanvasSelection,
+} from '../picker.js';
 import { createDefaultButtonRule, type ButtonStylesConfig } from '../../features/buttonStyles/schema.js';
 import { createDefaultTextRule, type TextEffectsConfig } from '../../features/textEffects/schema.js';
 
@@ -48,6 +53,7 @@ export function App({ store }: AppProps) {
             if (!currentCfg.enabled) {
               store.updateFeatureValue(feat, 'enabled', true, env);
             }
+            store.setActiveTargetSelector(target.selector);
             store.setActiveFeatureId('buttonStyles');
           }
         } else if (target.kind === 'text') {
@@ -67,6 +73,7 @@ export function App({ store }: AppProps) {
             if (!currentCfg.enabled) {
               store.updateFeatureValue(feat, 'enabled', true, env);
             }
+            store.setActiveTargetSelector(target.selector);
             store.setActiveFeatureId('textEffects');
           }
         }
@@ -76,6 +83,27 @@ export function App({ store }: AppProps) {
     return () => cleanup();
   }, [state.open]);
 
+  // Synchronize on-canvas selection frame with active target
+  useEffect(() => {
+    if (!state.open || !state.activeTargetSelector) {
+      clearActiveCanvasSelection();
+      return;
+    }
+
+    const btnRules = (state.draft.features?.buttonStyles?.rules as Array<{ selector: string; label: string }>) || [];
+    const txtRules = (state.draft.features?.textEffects?.rules as Array<{ selector: string; label: string }>) || [];
+    const found = [...btnRules, ...txtRules].find((r) => r.selector === state.activeTargetSelector);
+    const label = found?.label || 'Selected Element';
+
+    setActiveCanvasSelection(state.activeTargetSelector, label, () => {
+      store.setActiveTargetSelector(null);
+    });
+
+    return () => {
+      clearActiveCanvasSelection();
+    };
+  }, [state.open, state.activeTargetSelector, state.draft]);
+
   return (
     <>
       <Launcher open={state.open} onToggle={() => store.toggleOpen()} />
@@ -83,16 +111,27 @@ export function App({ store }: AppProps) {
         open={state.open}
         position={state.position}
         activeFeatureId={state.activeFeatureId}
+        activeTargetSelector={state.activeTargetSelector}
         searchQuery={state.searchQuery}
         status={state.status}
         features={features}
         getFeatureConfig={(id) => state.draft.features?.[id] || {}}
-        onClose={() => store.setOpen(false)}
+        onClose={() => {
+          store.setActiveTargetSelector(null);
+          store.setOpen(false);
+        }}
         onPositionChange={(pos) => store.setPosition(pos)}
         onSearchChange={(q) => store.setSearchQuery(q)}
-        onSelectFeature={(id) => store.setActiveFeatureId(id)}
+        onSelectFeature={(id) => {
+          if (!id) store.setActiveTargetSelector(null);
+          store.setActiveFeatureId(id);
+        }}
+        onSelectTargetSelector={(sel) => store.setActiveTargetSelector(sel)}
         onUpdateFeatureValue={(feat, key, val) => store.updateFeatureValue(feat, key, val, env)}
-        onResetFeature={(feat) => store.resetFeature(feat, env)}
+        onResetFeature={(feat) => {
+          store.setActiveTargetSelector(null);
+          store.resetFeature(feat, env);
+        }}
         onPublish={() => store.publish()}
       />
     </>
