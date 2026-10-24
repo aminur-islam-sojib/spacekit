@@ -203,5 +203,50 @@ describe('Editor Panel (TC-E04, TC-E05, TC-E08, TC-E09, TC-E10, TC-E11, TC-E12)'
       expect.anything()
     );
   });
+
+  it('TC-E14: renders modern top header actions, category grouping, and publish pill with badge', () => {
+    act(() => {
+      mountEditor();
+    });
+    const shadow = document.getElementById('sitekit-host')!.shadowRoot!;
+
+    // Top action buttons exist
+    const brand = shadow.querySelector('.brand-mark');
+    expect(brand).not.toBeNull();
+    const actionBtns = shadow.querySelectorAll('.header-icon-btn');
+    expect(actionBtns.length).toBe(4); // Help, Filter, Search, Close
+
+    // Category header rendered
+    const catHeader = shadow.querySelector('.category-header');
+    expect(catHeader).not.toBeNull();
+    expect(catHeader?.textContent).toBe('Navigation & Utility');
+
+    // Help banner toggling
+    const helpBtn = shadow.querySelector('button[aria-label="Help & Documentation"]') as HTMLButtonElement;
+    expect(shadow.querySelector('.help-banner')).toBeNull();
+    act(() => {
+      helpBtn.click();
+    });
+    expect(shadow.querySelector('.help-banner')).not.toBeNull();
+
+    // Floating publish pill
+    const pill = shadow.querySelector('.publish-pill') as HTMLButtonElement;
+    expect(pill).not.toBeNull();
+    expect(pill.textContent).toContain('Publish');
+
+    // Trigger an unsaved change and verify pill badge appears
+    act(() => {
+      (shadow.querySelector('[data-open="backToTop"]') as HTMLButtonElement).click();
+    });
+    const toggle = shadow.querySelector('input[data-k="enabled"]') as HTMLInputElement;
+    act(() => {
+      toggle.checked = true;
+      toggle.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+
+    const badge = shadow.querySelector('.pill-badge');
+    expect(badge).not.toBeNull();
+    expect(badge?.textContent).toBe('1');
+  });
 });
 
