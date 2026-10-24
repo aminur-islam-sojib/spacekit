@@ -67,6 +67,7 @@ export function App({ store }: AppProps) {
                 ...createDefaultTextRule(),
                 selector: target.selector,
                 label: target.label,
+                tag: target.tag || 'h2',
               };
               store.updateFeatureValue(feat, 'rules', [...currentRules, newRule], env);
             }

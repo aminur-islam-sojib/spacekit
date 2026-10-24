@@ -269,4 +269,88 @@ describe('Feature: Text & Heading Effects (TC-TE01..TC-TE10)', () => {
     expect(css).not.toContain('letter-spacing: 10px');
     expect(css).not.toContain('letter-spacing: 8px');
   });
+
+  it('TC-TE11: generates desktop typography CSS overrides when textOptionsEnabled is true', () => {
+    const config: TextEffectsConfig = {
+      enabled: true,
+      rules: [
+        {
+          ...createDefaultTextRule('rule_typo'),
+          selector: '#block-heading h2',
+          textOptionsEnabled: true,
+          textColor: '#2563eb',
+          fontSize: 54,
+          format: 'bold',
+          align: 'center',
+          lineGap: 1.35,
+          gradientEnabled: false,
+        },
+      ],
+    };
+
+    textEffectsFeature.init(config, mockEnv);
+    const css = document.querySelector('style[data-sk="textEffects"]')?.textContent || '';
+
+    expect(css).toContain('#block-heading h2');
+    expect(css).toContain('color: #2563eb !important;');
+    expect(css).toContain('font-size: 54px !important;');
+    expect(css).toContain('font-weight: 700 !important;');
+    expect(css).toContain('text-align: center !important;');
+    expect(css).toContain('line-height: 1.35 !important;');
+  });
+
+  it('TC-TE12: generates responsive mobile typography rules inside @media (max-width: 767px)', () => {
+    const config: TextEffectsConfig = {
+      enabled: true,
+      rules: [
+        {
+          ...createDefaultTextRule('rule_mobile'),
+          selector: '#block-heading h2',
+          textOptionsEnabled: true,
+          fontSize: 54,
+          mobileFontSize: 30,
+          align: 'left',
+          mobileAlign: 'center',
+          gradientEnabled: false,
+        },
+      ],
+    };
+
+    textEffectsFeature.init(config, mockEnv);
+    const css = document.querySelector('style[data-sk="textEffects"]')?.textContent || '';
+
+    expect(css).toContain('@media (max-width: 767px)');
+    expect(css).toContain('font-size: 30px !important;');
+    expect(css).toContain('text-align: center !important;');
+  });
+
+  it('TC-TE13: omits typography overrides when textOptionsEnabled is false', () => {
+    const config: TextEffectsConfig = {
+      enabled: true,
+      rules: [
+        {
+          ...createDefaultTextRule('rule_disabled_opt'),
+          selector: '#block-heading h2',
+          textOptionsEnabled: false,
+          textColor: '#dc2626',
+          fontSize: 60,
+          mobileFontSize: 34,
+          format: 'italic',
+          align: 'right',
+          lineGap: 1.5,
+          gradientEnabled: false,
+        },
+      ],
+    };
+
+    textEffectsFeature.init(config, mockEnv);
+    const css = document.querySelector('style[data-sk="textEffects"]')?.textContent || '';
+
+    expect(css).not.toContain('color: #dc2626 !important;');
+    expect(css).not.toContain('font-size: 60px !important;');
+    expect(css).not.toContain('font-style: italic !important;');
+    expect(css).not.toContain('text-align: right !important;');
+    expect(css).not.toContain('line-height: 1.5 !important;');
+    expect(css).not.toContain('@media (max-width: 767px)');
+  });
 });

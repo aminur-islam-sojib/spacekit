@@ -4,6 +4,7 @@ import { mountEditor, unmountEditor } from '../../src/editor/index.js';
 import { registry, lifecycle } from '../../src/core/index.js';
 import { backToTopFeature } from '../../src/features/backToTop/index.js';
 import { buttonStylesFeature } from '../../src/features/buttonStyles/index.js';
+import { textEffectsFeature } from '../../src/features/textEffects/index.js';
 
 describe('Editor Panel (TC-E04, TC-E05, TC-E08, TC-E09, TC-E10, TC-E11, TC-E12)', () => {
   beforeEach(() => {
@@ -322,6 +323,34 @@ describe('Editor Panel (TC-E04, TC-E05, TC-E08, TC-E09, TC-E10, TC-E11, TC-E12)'
     // Active inspector clears, shows idle empty-selection prompt
     expect(shadow.querySelector('.editing-badge')).toBeNull();
     expect(shadow.querySelector('.empty-selection-card')).not.toBeNull();
+  });
+
+  it('TC-E17: renders Text options section when text element is selected on page, and toggles switch', () => {
+    registry.register(textEffectsFeature);
+    const heading = document.createElement('h2');
+    heading.id = 'heading-test';
+    heading.textContent = 'Photographe';
+    document.body.appendChild(heading);
+
+    act(() => {
+      mountEditor();
+    });
+    const shadow = document.getElementById('sitekit-host')!.shadowRoot!;
+    act(() => {
+      (shadow.querySelector('.fab') as HTMLButtonElement).click();
+    });
+
+    // Click heading
+    act(() => {
+      heading.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+    });
+
+    expect(shadow.querySelector('.detail-title')?.textContent).toBe('Text');
+    expect(shadow.querySelector('.section-title')?.textContent).toContain('Text options');
+
+    // Section body should be visible because textOptionsEnabled is true by default
+    expect(shadow.querySelector('.tag-select')).not.toBeNull();
+    expect(shadow.querySelector('.segmented-group')).not.toBeNull();
   });
 });
 

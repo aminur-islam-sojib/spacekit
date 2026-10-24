@@ -6,6 +6,17 @@ export interface StyledTextRule {
   label: string;
   enabled: boolean;
 
+  // Text options (FR-TE11)
+  textOptionsEnabled: boolean;
+  tag: string;
+  textColor?: string;
+  fontSize?: number;            // Desktop font size in px
+  mobileFontSize?: number;      // Mobile font size in px
+  format?: 'auto' | 'bold' | 'italic' | 'underline' | 'strike';
+  align?: 'left' | 'center' | 'right' | 'justify';
+  mobileAlign?: 'left' | 'center' | 'right';
+  lineGap?: number;             // Line height (e.g. 1.2 or 1.5)
+
   // Gradient text
   gradientEnabled: boolean;
   gradientStart: string;
@@ -44,7 +55,19 @@ export function createDefaultTextRule(id: string = `rule_${Date.now()}`): Styled
     label: 'New text element',
     enabled: true,
 
-    gradientEnabled: true,
+    // Text options
+    textOptionsEnabled: true,
+    tag: 'h2',
+    textColor: '#18181b',
+    fontSize: 48,
+    mobileFontSize: 32,
+    format: 'auto',
+    align: 'left',
+    mobileAlign: 'left',
+    lineGap: 1.2,
+
+    // Gradient text
+    gradientEnabled: false,
     gradientStart: '#4f46e5',
     gradientEnd: '#06b6d4',
     gradientAngle: 135,

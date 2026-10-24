@@ -7,6 +7,7 @@ export interface PickedTarget {
   selector: string;
   label: string;
   textSnippet: string;
+  tag?: string;
 }
 
 export interface PickerOptions {
@@ -156,9 +157,10 @@ export function startPicker(options: PickerOptions): () => void {
     const selector = extractTargetSelector(el, kind);
     const label = extractTargetLabel(el, kind);
     const textSnippet = (el.textContent || '').trim();
+    const tag = el.tagName.toLowerCase();
 
     cleanup();
-    options.onSelect({ kind, selector, label, textSnippet });
+    options.onSelect({ kind, selector, label, textSnippet, tag });
   };
 
   const onMouseMove = (e: MouseEvent) => {
@@ -289,11 +291,12 @@ export function startInspector(options: InspectorOptions): () => void {
     const selector = extractTargetSelector(el, kind);
     const label = extractTargetLabel(el, kind);
     const textSnippet = (el.textContent || '').trim();
+    const tag = el.tagName.toLowerCase();
 
     highlight.style.display = 'none';
     currentTargetEl = null;
 
-    options.onSelect({ kind, selector, label, textSnippet });
+    options.onSelect({ kind, selector, label, textSnippet, tag });
   };
 
   const onMouseMove = (e: MouseEvent) => {

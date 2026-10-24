@@ -4,6 +4,61 @@ export function generateRuleCss(rule: StyledTextRule): string {
   const targetSel = rule.selector ? rule.selector.trim() : '';
   if (!targetSel) return '';
 
+  let textOptionsDesktopCss = '';
+  let textOptionsMobileCss = '';
+
+  if (rule.textOptionsEnabled) {
+    const desktopDecls: string[] = [];
+
+    if (rule.textColor && !rule.gradientEnabled) {
+      desktopDecls.push(`color: ${rule.textColor} !important;`);
+    }
+
+    if (typeof rule.fontSize === 'number' && rule.fontSize > 0) {
+      desktopDecls.push(`font-size: ${rule.fontSize}px !important;`);
+    }
+
+    if (rule.format === 'bold') {
+      desktopDecls.push('font-weight: 700 !important;');
+    } else if (rule.format === 'italic') {
+      desktopDecls.push('font-style: italic !important;');
+    } else if (rule.format === 'underline') {
+      desktopDecls.push('text-decoration: underline !important;');
+    } else if (rule.format === 'strike') {
+      desktopDecls.push('text-decoration: line-through !important;');
+    }
+
+    if (rule.align) {
+      desktopDecls.push(`text-align: ${rule.align} !important;`);
+    }
+
+    if (typeof rule.lineGap === 'number' && rule.lineGap > 0) {
+      desktopDecls.push(`line-height: ${rule.lineGap} !important;`);
+    }
+
+    if (desktopDecls.length > 0) {
+      textOptionsDesktopCss = `\n  ${desktopDecls.join('\n  ')}`;
+    }
+
+    const mobileDecls: string[] = [];
+    if (typeof rule.mobileFontSize === 'number' && rule.mobileFontSize > 0) {
+      mobileDecls.push(`font-size: ${rule.mobileFontSize}px !important;`);
+    }
+    if (rule.mobileAlign) {
+      mobileDecls.push(`text-align: ${rule.mobileAlign} !important;`);
+    }
+
+    if (mobileDecls.length > 0) {
+      textOptionsMobileCss = `
+@media (max-width: 767px) {
+  ${targetSel} {
+    ${mobileDecls.join('\n    ')}
+  }
+}
+`;
+    }
+  }
+
   let gradientCss = '';
   let keyframesCss = '';
   if (rule.gradientEnabled) {
@@ -112,9 +167,10 @@ ${selHoverAfter} {
   }
 
   const baseRules =
-    gradientCss || shadowCss || letterSpacingCss
+    gradientCss || shadowCss || letterSpacingCss || textOptionsDesktopCss
       ? `
 ${targetSel} {
+  ${textOptionsDesktopCss.trim()}
   ${gradientCss.trim()}
   ${shadowCss}
   ${letterSpacingCss}
@@ -134,6 +190,7 @@ ${targetSel} {
 
   return `
 ${baseRules}
+${textOptionsMobileCss}
 ${highlightRules}
 ${underlineRules}
 ${keyframesCss}
