@@ -3,6 +3,7 @@ import { act } from 'preact/test-utils';
 import { mountEditor, unmountEditor } from '../../src/editor/index.js';
 import { registry, lifecycle } from '../../src/core/index.js';
 import { backToTopFeature } from '../../src/features/backToTop/index.js';
+import { buttonStylesFeature } from '../../src/features/buttonStyles/index.js';
 
 describe('Editor Panel (TC-E04, TC-E05, TC-E08, TC-E09, TC-E10, TC-E11, TC-E12)', () => {
   beforeEach(() => {
@@ -247,6 +248,35 @@ describe('Editor Panel (TC-E04, TC-E05, TC-E08, TC-E09, TC-E10, TC-E11, TC-E12)'
     const badge = shadow.querySelector('.pill-badge');
     expect(badge).not.toBeNull();
     expect(badge?.textContent).toBe('1');
+  });
+
+  it('TC-E15: auto-inspector running when panel is open clicks button on page and routes to buttonStyles editor', () => {
+    registry.register(buttonStylesFeature);
+    const btn = document.createElement('a');
+    btn.className = 'sqs-block-button-element';
+    btn.textContent = 'Get Quote';
+    document.body.appendChild(btn);
+
+    act(() => {
+      mountEditor();
+    });
+    const host = document.getElementById('sitekit-host')!;
+    const shadow = host.shadowRoot!;
+    const fab = shadow.querySelector('.fab') as HTMLButtonElement;
+
+    // Open panel
+    act(() => {
+      fab.click();
+    });
+
+    // Click button on page
+    act(() => {
+      btn.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+    });
+
+    // Panel should have navigated to Button Designs
+    expect(shadow.querySelector('h2')?.textContent).toBe('Button Designs');
+    expect(shadow.querySelector('.button-styles-editor')).not.toBeNull();
   });
 });
 

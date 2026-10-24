@@ -5,19 +5,29 @@ export type ButtonHoverEffect = 'none' | 'lift' | 'scale' | 'glow' | 'shine';
 export type ButtonShadow = 'none' | 'subtle' | 'medium' | 'dramatic' | 'colored';
 export type ButtonBorderStyle = 'none' | 'solid' | 'dashed' | 'double';
 
-export interface ButtonStylesConfig extends Record<string, unknown> {
+export interface StyledButtonRule {
+  id: string;
+  selector: string;
+  label: string;
   enabled: boolean;
-  target: ButtonTarget;
+
+  // Shape & Border
   radius: number;
   borderWidth: number;
   borderStyle: ButtonBorderStyle;
   borderColor: string;
+
+  // Hover & Depth
   hoverEffect: ButtonHoverEffect;
   shadow: ButtonShadow;
+
+  // Sizing & Typography
   paddingY: number;
   paddingX: number;
   fontWeight: string;
   letterSpacing: number;
+
+  // Colors & Fills
   customColors: boolean;
   bg: string;
   useGradient: boolean;
@@ -26,8 +36,60 @@ export interface ButtonStylesConfig extends Record<string, unknown> {
   fg: string;
 }
 
+export function createDefaultButtonRule(id: string = `btn_${Date.now()}`): StyledButtonRule {
+  return {
+    id,
+    selector: '',
+    label: 'New button element',
+    enabled: true,
+
+    radius: 8,
+    borderWidth: 0,
+    borderStyle: 'none',
+    borderColor: '#0f766e',
+
+    hoverEffect: 'lift',
+    shadow: 'subtle',
+
+    paddingY: 12,
+    paddingX: 24,
+    fontWeight: '600',
+    letterSpacing: 1,
+
+    customColors: true,
+    bg: '#0f766e',
+    useGradient: false,
+    bgGradientEnd: '#0d9488',
+    gradientAngle: 135,
+    fg: '#ffffff',
+  };
+}
+
+export interface ButtonStylesConfig extends Record<string, unknown> {
+  enabled: boolean;
+  rules?: StyledButtonRule[];
+  target?: ButtonTarget;
+  radius?: number;
+  borderWidth?: number;
+  borderStyle?: ButtonBorderStyle;
+  borderColor?: string;
+  hoverEffect?: ButtonHoverEffect;
+  shadow?: ButtonShadow;
+  paddingY?: number;
+  paddingX?: number;
+  fontWeight?: string;
+  letterSpacing?: number;
+  customColors?: boolean;
+  bg?: string;
+  useGradient?: boolean;
+  bgGradientEnd?: string;
+  gradientAngle?: number;
+  fg?: string;
+}
+
 export const buttonStylesDefaults: ButtonStylesConfig = {
   enabled: false,
+  rules: [],
   target: 'all',
   radius: 8,
   borderWidth: 0,
@@ -98,12 +160,11 @@ export const buttonStylesSchema: Field[] = [
   },
   { key: 'letterSpacing', type: 'range', label: 'Letter spacing', min: 0, max: 4, unit: 'px', group: 'Typography & Sizing' },
 
-  // Group: Colors (Optional Override)
-  { key: 'customColors', type: 'toggle', label: 'Override template colors', group: 'Colors' },
-  { key: 'bg', type: 'color', label: 'Button background', group: 'Colors' },
-  { key: 'useGradient', type: 'toggle', label: 'Use gradient fill', group: 'Colors' },
+  // Group: Colors
+  { key: 'customColors', type: 'toggle', label: 'Use custom button colors', group: 'Colors' },
+  { key: 'bg', type: 'color', label: 'Button background color', group: 'Colors' },
+  { key: 'useGradient', type: 'toggle', label: 'Use gradient background', group: 'Colors' },
   { key: 'bgGradientEnd', type: 'color', label: 'Gradient end color', group: 'Colors' },
-  { key: 'gradientAngle', type: 'range', label: 'Gradient angle', min: 0, max: 360, step: 15, unit: 'deg', group: 'Colors' },
-  { key: 'fg', type: 'color', label: 'Text color', group: 'Colors' },
+  { key: 'gradientAngle', type: 'range', label: 'Gradient angle', min: 0, max: 360, unit: 'deg', group: 'Colors' },
+  { key: 'fg', type: 'color', label: 'Button text color', group: 'Colors' },
 ];
-

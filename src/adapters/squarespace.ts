@@ -76,3 +76,30 @@ export function detectEditor(): boolean {
 
   return false;
 }
+
+/**
+ * Checks if an element is a Squarespace button element.
+ */
+export function isButtonElement(el: HTMLElement): boolean {
+  if (!el || typeof el.closest !== 'function') return false;
+  return Boolean(
+    el.closest(
+      'a.sqs-block-button-element, button.sqs-block-button-element, .sqs-button-element--primary, .sqs-button-element--secondary, .sqs-button-element--tertiary, [data-sqsp-button], .sqs-block-button a, .sqs-block-button button, a.sqs-button-element'
+    )
+  );
+}
+
+/**
+ * Checks if an element is a text/heading element.
+ */
+export function isTextElement(el: HTMLElement): boolean {
+  if (!el || typeof el.closest !== 'function') return false;
+  // If it's a button, it takes precedence as a button
+  if (isButtonElement(el)) return false;
+  return Boolean(
+    el.closest(
+      'h1, h2, h3, h4, h5, h6, p, blockquote, .sqsrte-large, .sqsrte-small, [data-sqsp-text-block-content] *'
+    )
+  );
+}
+

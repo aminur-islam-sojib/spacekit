@@ -182,6 +182,129 @@ describe('Feature: Button Styling Pack (TC-BS01..TC-BS08)', () => {
       expect(startsWithInteractive).toBe(true);
     }
   });
+
+  it('TC-BS11: generates scoped CSS for multiple independent single-element button rules', () => {
+    const config: ButtonStylesConfig = {
+      enabled: true,
+      rules: [
+        {
+          id: 'btn-1',
+          selector: '#block-yui_cta_1 .sqs-block-button-element',
+          label: 'Primary CTA Button',
+          enabled: true,
+          radius: 50,
+          borderWidth: 2,
+          borderStyle: 'solid',
+          borderColor: '#10b981',
+          hoverEffect: 'glow',
+          shadow: 'colored',
+          paddingY: 14,
+          paddingX: 30,
+          fontWeight: '700',
+          letterSpacing: 2,
+          customColors: true,
+          bg: '#10b981',
+          useGradient: true,
+          bgGradientEnd: '#059669',
+          gradientAngle: 90,
+          fg: '#ffffff',
+        },
+        {
+          id: 'btn-2',
+          selector: '#block-yui_contact .sqs-block-button-element',
+          label: 'Secondary Contact Button',
+          enabled: true,
+          radius: 0,
+          borderWidth: 1,
+          borderStyle: 'dashed',
+          borderColor: '#ef4444',
+          hoverEffect: 'lift',
+          shadow: 'none',
+          paddingY: 10,
+          paddingX: 20,
+          fontWeight: '500',
+          letterSpacing: 0,
+          customColors: false,
+          bg: '#ef4444',
+          useGradient: false,
+          bgGradientEnd: '#b91c1c',
+          gradientAngle: 135,
+          fg: '#ffffff',
+        },
+      ],
+    };
+
+    buttonStylesFeature.init(config, mockEnv);
+    const css = document.querySelector('style[data-sk="buttonStyles"]')?.textContent || '';
+
+    // First button has pill radius and emerald gradient
+    expect(css).toContain('#block-yui_cta_1 .sqs-block-button-element');
+    expect(css).toContain('border-radius: 50px');
+    expect(css).toContain('linear-gradient(90deg, #10b981, #059669)');
+
+    // Second button has square radius (0px) and dashed red border
+    expect(css).toContain('#block-yui_contact .sqs-block-button-element');
+    expect(css).toContain('border-radius: 0px');
+    expect(css).toContain('1px dashed #ef4444');
+  });
+
+  it('TC-BS12: ignores disabled button rules and applies only active rules', () => {
+    const config: ButtonStylesConfig = {
+      enabled: true,
+      rules: [
+        {
+          id: 'btn-active',
+          selector: '#block-active a',
+          label: 'Active Button',
+          enabled: true,
+          radius: 12,
+          borderWidth: 0,
+          borderStyle: 'none',
+          borderColor: '#0f766e',
+          hoverEffect: 'lift',
+          shadow: 'subtle',
+          paddingY: 12,
+          paddingX: 24,
+          fontWeight: '600',
+          letterSpacing: 1,
+          customColors: false,
+          bg: '#0f766e',
+          useGradient: false,
+          bgGradientEnd: '#0d9488',
+          gradientAngle: 135,
+          fg: '#ffffff',
+        },
+        {
+          id: 'btn-disabled',
+          selector: '#block-disabled a',
+          label: 'Disabled Button',
+          enabled: false,
+          radius: 30,
+          borderWidth: 0,
+          borderStyle: 'none',
+          borderColor: '#0f766e',
+          hoverEffect: 'lift',
+          shadow: 'subtle',
+          paddingY: 12,
+          paddingX: 24,
+          fontWeight: '600',
+          letterSpacing: 1,
+          customColors: false,
+          bg: '#0f766e',
+          useGradient: false,
+          bgGradientEnd: '#0d9488',
+          gradientAngle: 135,
+          fg: '#ffffff',
+        },
+      ],
+    };
+
+    buttonStylesFeature.init(config, mockEnv);
+    const css = document.querySelector('style[data-sk="buttonStyles"]')?.textContent || '';
+
+    expect(css).toContain('#block-active a');
+    expect(css).not.toContain('#block-disabled a');
+  });
 });
 
 

@@ -1,6 +1,7 @@
 import type { Feature } from '../../shared/types.js';
 import { FieldControl } from './Controls.js';
 import { TextEffectsEditor } from './TextEffectsEditor.js';
+import { ButtonStylesEditor } from './ButtonStylesEditor.js';
 
 interface FeatureDetailProps {
   feature: Feature<Record<string, unknown>>;
@@ -17,6 +18,17 @@ export function FeatureDetail({
   onUpdateValue,
   onReset,
 }: FeatureDetailProps) {
+  if (feature.id === 'buttonStyles') {
+    return (
+      <ButtonStylesEditor
+        config={config}
+        onBack={onBack}
+        onUpdateValue={onUpdateValue}
+        onReset={onReset}
+      />
+    );
+  }
+
   if (feature.id === 'textEffects') {
     return (
       <TextEffectsEditor

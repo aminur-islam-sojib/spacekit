@@ -3,6 +3,9 @@ import type { EditorStore } from '../state.js';
 import { registry } from '../../core/index.js';
 import { Launcher } from './Launcher.js';
 import { Panel } from './Panel.js';
+import { startInspector, type PickedTarget } from '../picker.js';
+import { createDefaultButtonRule, type ButtonStylesConfig } from '../../features/buttonStyles/schema.js';
+import { createDefaultTextRule, type TextEffectsConfig } from '../../features/textEffects/schema.js';
 
 interface AppProps {
   store: EditorStore;
@@ -19,6 +22,58 @@ export function App({ store }: AppProps) {
 
   const features = registry.getAll();
   const env = { isEditor: true, isEditorActive: false };
+
+  // Universal Auto-Inspector: when panel is open, hovering over buttons or text
+  // allows one-click selection to edit that specific element
+  useEffect(() => {
+    if (!state.open) return;
+
+    const cleanup = startInspector({
+      onSelect: (target: PickedTarget) => {
+        if (target.kind === 'button') {
+          const feat = features.find((f) => f.id === 'buttonStyles');
+          if (feat) {
+            const currentCfg = (state.draft.features?.buttonStyles || {}) as ButtonStylesConfig;
+            const currentRules = Array.isArray(currentCfg.rules) ? currentCfg.rules : [];
+            const exists = currentRules.some((r) => r.selector === target.selector);
+            if (!exists) {
+              const newRule = {
+                ...createDefaultButtonRule(),
+                selector: target.selector,
+                label: target.label,
+              };
+              store.updateFeatureValue(feat, 'rules', [...currentRules, newRule], env);
+            }
+            if (!currentCfg.enabled) {
+              store.updateFeatureValue(feat, 'enabled', true, env);
+            }
+            store.setActiveFeatureId('buttonStyles');
+          }
+        } else if (target.kind === 'text') {
+          const feat = features.find((f) => f.id === 'textEffects');
+          if (feat) {
+            const currentCfg = (state.draft.features?.textEffects || {}) as TextEffectsConfig;
+            const currentRules = Array.isArray(currentCfg.rules) ? currentCfg.rules : [];
+            const exists = currentRules.some((r) => r.selector === target.selector);
+            if (!exists) {
+              const newRule = {
+                ...createDefaultTextRule(),
+                selector: target.selector,
+                label: target.label,
+              };
+              store.updateFeatureValue(feat, 'rules', [...currentRules, newRule], env);
+            }
+            if (!currentCfg.enabled) {
+              store.updateFeatureValue(feat, 'enabled', true, env);
+            }
+            store.setActiveFeatureId('textEffects');
+          }
+        }
+      },
+    });
+
+    return () => cleanup();
+  }, [state.open, state.draft, features]);
 
   return (
     <>

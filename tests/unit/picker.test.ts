@@ -3,6 +3,7 @@ import {
   extractTargetSelector,
   extractTargetLabel,
   startPicker,
+  startInspector,
 } from '../../src/editor/picker.js';
 
 describe('Target Picker (TC-TP01..TC-TP05)', () => {
@@ -113,5 +114,55 @@ describe('Target Picker (TC-TP01..TC-TP05)', () => {
 
     expect(onCancel).toHaveBeenCalledTimes(1);
     expect(document.querySelector('[data-sk="picker-highlight"]')).toBeNull();
+  });
+
+  it('TC-TP06: detects button elements vs text elements with proper kind classification', () => {
+    const btnBlock = document.createElement('div');
+    btnBlock.id = 'block-yui_btn1';
+    const btn = document.createElement('a');
+    btn.className = 'sqs-block-button-element';
+    btn.textContent = 'Shop Now';
+    btnBlock.appendChild(btn);
+    document.body.appendChild(btnBlock);
+
+    const onSelect = vi.fn();
+    const cleanup = startPicker({ onSelect });
+
+    btn.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+
+    expect(onSelect).toHaveBeenCalledWith(
+      expect.objectContaining({
+        kind: 'button',
+        selector: '#block-yui_btn1 .sqs-block-button-element',
+        label: 'Button: "Shop Now"',
+      })
+    );
+
+    cleanup();
+  });
+
+  it('TC-TP07: universal auto-inspector tracks hover on buttons and fires selection', () => {
+    const btn = document.createElement('button');
+    btn.className = 'sqs-block-button-element';
+    btn.textContent = 'Book Now';
+    document.body.appendChild(btn);
+
+    const onSelect = vi.fn();
+    const cleanup = startInspector({ onSelect });
+
+    // Hover creates inspector highlight
+    window.dispatchEvent(new MouseEvent('mousemove', { bubbles: true, clientX: 10, clientY: 10 }));
+
+    // Click triggers element selection
+    btn.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+
+    expect(onSelect).toHaveBeenCalledWith(
+      expect.objectContaining({
+        kind: 'button',
+        label: 'Button: "Book Now"',
+      })
+    );
+
+    cleanup();
   });
 });

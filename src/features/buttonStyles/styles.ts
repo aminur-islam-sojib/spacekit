@@ -1,7 +1,7 @@
-import type { ButtonStylesConfig } from './schema.js';
+import type { ButtonStylesConfig, StyledButtonRule } from './schema.js';
 import { SELECTORS } from '../../adapters/squarespace.js';
 
-export function getButtonSelector(target: string): string {
+export function getButtonSelector(target: string = 'all'): string {
   switch (target) {
     case 'primary':
       return SELECTORS.buttonsPrimary;
@@ -22,30 +22,30 @@ export function withPseudo(selectorList: string, pseudo: string): string {
     .join(', ');
 }
 
-export function generateButtonCss(cfg: ButtonStylesConfig): string {
-  const sel = getButtonSelector(cfg.target);
+export function generateButtonRuleCss(rule: StyledButtonRule): string {
+  const sel = rule.selector || SELECTORS.buttonsAll;
   const selHover = withPseudo(sel, ':hover');
   const selActive = withPseudo(sel, ':active');
   const selFocusNoVis = withPseudo(sel, ':focus:not(:focus-visible)');
   const selFocusVis = withPseudo(sel, ':focus-visible');
 
   // Accent color used for fallback glow/tint
-  const accentColor = cfg.customColors
-    ? cfg.bg
-    : cfg.borderWidth > 0 && cfg.borderStyle !== 'none'
-      ? cfg.borderColor
+  const accentColor = rule.customColors
+    ? rule.bg
+    : rule.borderWidth > 0 && rule.borderStyle !== 'none'
+      ? rule.borderColor
       : '#0f766e';
 
   // Border CSS
   let borderCss = 'border: none;';
-  if (cfg.borderWidth > 0 && cfg.borderStyle !== 'none') {
-    borderCss = `border: ${cfg.borderWidth}px ${cfg.borderStyle} ${cfg.borderColor} !important;`;
+  if (rule.borderWidth > 0 && rule.borderStyle !== 'none') {
+    borderCss = `border: ${rule.borderWidth}px ${rule.borderStyle} ${rule.borderColor} !important;`;
   }
 
   // Shadow CSS
   let shadowCss = 'box-shadow: none;';
   let hoverShadow = '';
-  switch (cfg.shadow) {
+  switch (rule.shadow) {
     case 'subtle':
       shadowCss = 'box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);';
       hoverShadow = 'box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);';
@@ -73,7 +73,7 @@ export function generateButtonCss(cfg: ButtonStylesConfig): string {
   // Hover animation
   let hoverTransform = '';
   let hoverFilter = '';
-  switch (cfg.hoverEffect) {
+  switch (rule.hoverEffect) {
     case 'lift':
       hoverTransform = 'transform: translateY(-3px);';
       break;
@@ -93,24 +93,24 @@ export function generateButtonCss(cfg: ButtonStylesConfig): string {
 
   // Colors
   let colorsCss = '';
-  if (cfg.customColors) {
-    if (cfg.useGradient) {
-      const angle = typeof cfg.gradientAngle === 'number' ? cfg.gradientAngle : 135;
-      const end = cfg.bgGradientEnd || '#0d9488';
-      colorsCss = `background: linear-gradient(${angle}deg, ${cfg.bg}, ${end}) !important; color: ${cfg.fg} !important;`;
+  if (rule.customColors) {
+    if (rule.useGradient) {
+      const angle = typeof rule.gradientAngle === 'number' ? rule.gradientAngle : 135;
+      const end = rule.bgGradientEnd || '#0d9488';
+      colorsCss = `background: linear-gradient(${angle}deg, ${rule.bg}, ${end}) !important; color: ${rule.fg} !important;`;
     } else {
-      colorsCss = `background: ${cfg.bg} !important; color: ${cfg.fg} !important;`;
+      colorsCss = `background: ${rule.bg} !important; color: ${rule.fg} !important;`;
     }
   }
 
   return `
-/* SiteKit Button Styling Pack */
+/* SiteKit Button Rule: ${rule.label} */
 ${sel} {
-  border-radius: ${cfg.radius}px !important;
+  border-radius: ${rule.radius}px !important;
   ${borderCss}
-  padding: ${cfg.paddingY}px ${cfg.paddingX}px !important;
-  font-weight: ${cfg.fontWeight} !important;
-  letter-spacing: ${cfg.letterSpacing}px !important;
+  padding: ${rule.paddingY}px ${rule.paddingX}px !important;
+  font-weight: ${rule.fontWeight} !important;
+  letter-spacing: ${rule.letterSpacing}px !important;
   ${shadowCss}
   ${colorsCss}
   min-height: 44px;
@@ -148,3 +148,37 @@ ${selFocusVis} {
 `.trim();
 }
 
+export function generateButtonCss(cfg: ButtonStylesConfig): string {
+  // If per-element rules are configured, generate CSS for each rule
+  if (Array.isArray(cfg.rules) && cfg.rules.length > 0) {
+    const activeRules = cfg.rules.filter((r) => r.enabled !== false);
+    if (activeRules.length === 0) return '';
+    return activeRules.map((r) => generateButtonRuleCss(r)).join('\n\n');
+  }
+
+  // Fallback: Legacy global configuration
+  const legacyRule: StyledButtonRule = {
+    id: 'legacy-global',
+    selector: getButtonSelector(cfg.target || 'all'),
+    label: 'Global Button Styles',
+    enabled: true,
+    radius: typeof cfg.radius === 'number' ? cfg.radius : 8,
+    borderWidth: typeof cfg.borderWidth === 'number' ? cfg.borderWidth : 0,
+    borderStyle: cfg.borderStyle || 'none',
+    borderColor: cfg.borderColor || '#0f766e',
+    hoverEffect: cfg.hoverEffect || 'lift',
+    shadow: cfg.shadow || 'subtle',
+    paddingY: typeof cfg.paddingY === 'number' ? cfg.paddingY : 12,
+    paddingX: typeof cfg.paddingX === 'number' ? cfg.paddingX : 24,
+    fontWeight: cfg.fontWeight || '600',
+    letterSpacing: typeof cfg.letterSpacing === 'number' ? cfg.letterSpacing : 1,
+    customColors: Boolean(cfg.customColors),
+    bg: cfg.bg || '#0f766e',
+    useGradient: Boolean(cfg.useGradient),
+    bgGradientEnd: cfg.bgGradientEnd || '#0d9488',
+    gradientAngle: typeof cfg.gradientAngle === 'number' ? cfg.gradientAngle : 135,
+    fg: cfg.fg || '#ffffff',
+  };
+
+  return generateButtonRuleCss(legacyRule);
+}
