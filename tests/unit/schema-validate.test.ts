@@ -122,6 +122,45 @@ describe('Schema Validator (TC-C05, TC-C16, TC-S01, TC-S02)', () => {
       expect(rules[0].gradientEnd).toBe('#123456');
       expect(rules[0].maliciousProp).toBeUndefined();
     });
+
+    it('TC-S03: preserves and validates textOptions and buttonStyles properties in rules array', () => {
+      const raw = {
+        enabled: true,
+        rules: [
+          {
+            id: 'rule_text',
+            selector: '#block-hero h2',
+            label: 'Hero Heading',
+            enabled: true,
+            textOptionsEnabled: true,
+            tag: 'h2',
+            textColor: '#3b82f6',
+            fontSize: 56,
+            mobileFontSize: 30,
+            format: 'bold',
+            align: 'center',
+            mobileAlign: 'center',
+            lineGap: 1.3,
+          },
+        ],
+      };
+
+      const result = validateFeatureConfig([], raw, { enabled: false, rules: [] }) as Record<
+        string,
+        unknown
+      >;
+      const rules = result.rules as Array<Record<string, unknown>>;
+      expect(rules).toHaveLength(1);
+      expect(rules[0].textOptionsEnabled).toBe(true);
+      expect(rules[0].tag).toBe('h2');
+      expect(rules[0].textColor).toBe('#3b82f6');
+      expect(rules[0].fontSize).toBe(56);
+      expect(rules[0].mobileFontSize).toBe(30);
+      expect(rules[0].format).toBe('bold');
+      expect(rules[0].align).toBe('center');
+      expect(rules[0].mobileAlign).toBe('center');
+      expect(rules[0].lineGap).toBe(1.3);
+    });
   });
 
   describe('validateSiteKitConfig', () => {

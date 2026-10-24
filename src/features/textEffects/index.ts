@@ -60,7 +60,13 @@ export const textEffectsFeature: Feature<TextEffectsConfig> = {
     if (styleEl && document.head.contains(styleEl)) {
       styleEl.textContent = css;
     } else {
-      this.init(cfg, env);
+      const existing = document.querySelector('style[data-sk="textEffects"]') as HTMLStyleElement | null;
+      if (existing) {
+        existing.textContent = css;
+        styleEl = existing;
+      } else {
+        this.init(cfg, env);
+      }
     }
   },
 

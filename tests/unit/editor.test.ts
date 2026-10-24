@@ -352,6 +352,18 @@ describe('Editor Panel (TC-E04, TC-E05, TC-E08, TC-E09, TC-E10, TC-E11, TC-E12)'
     expect(shadow.querySelector('.tag-text-label')).not.toBeNull();
     expect(shadow.querySelector('.tag-text-label')?.textContent).toContain('Heading 2');
     expect(shadow.querySelector('.segmented-group')).not.toBeNull();
+
+    // Verify editing color immediately updates live CSS in document.head via feature.update
+    const colorInput = shadow.querySelector('.color-swatch-input') as HTMLInputElement;
+    expect(colorInput).not.toBeNull();
+    act(() => {
+      colorInput.value = '#ef4444';
+      colorInput.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+
+    const styleEl = document.querySelector('style[data-sk="textEffects"]');
+    expect(styleEl).not.toBeNull();
+    expect(styleEl?.textContent).toContain('color: #ef4444 !important;');
   });
 });
 

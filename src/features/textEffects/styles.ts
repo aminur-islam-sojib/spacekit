@@ -12,16 +12,16 @@ export function generateRuleCss(rule: StyledTextRule): string {
     const desktopInnerDecls: string[] = [];
 
     // 1. Text color (applies to target and all inner spans/children)
-    if (rule.textColor && !rule.gradientEnabled) {
-      desktopDecls.push(`color: ${rule.textColor} !important;`);
-      desktopInnerDecls.push(`color: ${rule.textColor} !important;`);
+    const textColor = rule.textColor || '#ffffff';
+    if (!rule.gradientEnabled) {
+      desktopDecls.push(`color: ${textColor} !important;`);
+      desktopInnerDecls.push(`color: ${textColor} !important;`);
     }
 
     // 2. Desktop font size (applies to target and all inner spans/children)
-    if (typeof rule.fontSize === 'number' && rule.fontSize > 0) {
-      desktopDecls.push(`font-size: ${rule.fontSize}px !important;`);
-      desktopInnerDecls.push(`font-size: ${rule.fontSize}px !important;`);
-    }
+    const fontSize = typeof rule.fontSize === 'number' && rule.fontSize > 0 ? rule.fontSize : 48;
+    desktopDecls.push(`font-size: ${fontSize}px !important;`);
+    desktopInnerDecls.push(`font-size: ${fontSize}px !important;`);
 
     // 3. Formatting
     if (rule.format === 'bold') {
@@ -39,17 +39,15 @@ export function generateRuleCss(rule: StyledTextRule): string {
     }
 
     // 4. Desktop alignment
-    if (rule.align) {
-      desktopDecls.push(`text-align: ${rule.align} !important;`);
-      desktopDecls.push('display: block !important;');
-      desktopDecls.push('width: 100% !important;');
-    }
+    const align = rule.align || 'left';
+    desktopDecls.push(`text-align: ${align} !important;`);
+    desktopDecls.push('display: block !important;');
+    desktopDecls.push('width: 100% !important;');
 
     // 5. Line gap (line-height)
-    if (typeof rule.lineGap === 'number' && rule.lineGap > 0) {
-      desktopDecls.push(`line-height: ${rule.lineGap} !important;`);
-      desktopInnerDecls.push(`line-height: ${rule.lineGap} !important;`);
-    }
+    const lineGap = typeof rule.lineGap === 'number' && rule.lineGap > 0 ? rule.lineGap : 1.2;
+    desktopDecls.push(`line-height: ${lineGap} !important;`);
+    desktopInnerDecls.push(`line-height: ${lineGap} !important;`);
 
     if (desktopDecls.length > 0) {
       textOptionsDesktopCss = `
@@ -64,17 +62,18 @@ ${targetSel} span {
     }
 
     // Mobile overrides (@media (max-width: 767px) + Squarespace in-editor mobile view)
-    const mobileDecls: string[] = [];
-    const mobileInnerDecls: string[] = [];
-    if (typeof rule.mobileFontSize === 'number' && rule.mobileFontSize > 0) {
-      mobileDecls.push(`font-size: ${rule.mobileFontSize}px !important;`);
-      mobileInnerDecls.push(`font-size: ${rule.mobileFontSize}px !important;`);
-    }
-    if (rule.mobileAlign) {
-      mobileDecls.push(`text-align: ${rule.mobileAlign} !important;`);
-      mobileDecls.push('display: block !important;');
-      mobileDecls.push('width: 100% !important;');
-    }
+    const mobileFontSize = typeof rule.mobileFontSize === 'number' && rule.mobileFontSize > 0 ? rule.mobileFontSize : 32;
+    const mobileAlign = rule.mobileAlign || align;
+
+    const mobileDecls = [
+      `font-size: ${mobileFontSize}px !important;`,
+      `text-align: ${mobileAlign} !important;`,
+      'display: block !important;',
+      'width: 100% !important;',
+    ];
+    const mobileInnerDecls = [
+      `font-size: ${mobileFontSize}px !important;`,
+    ];
 
     if (mobileDecls.length > 0) {
       textOptionsMobileCss = `

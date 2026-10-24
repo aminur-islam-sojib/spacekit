@@ -86,63 +86,122 @@ export function validateFeatureConfig<C extends Record<string, unknown>>(
     }
   }
 
-  // Support custom rules array (e.g. for textEffects multi-target feature)
+  // Support custom rules array (e.g. for textEffects multi-target feature and buttonStyles per-element rules)
   if (Array.isArray(input.rules)) {
     output.rules = input.rules
       .filter((r): r is Record<string, unknown> => Boolean(r && typeof r === 'object' && !Array.isArray(r)))
-      .map((r) => ({
-        id: typeof r.id === 'string' ? sanitizeString(r.id.slice(0, 50)) : `rule_${Date.now()}`,
-        selector: typeof r.selector === 'string' ? sanitizeString(r.selector.slice(0, 200)) : '',
-        label: typeof r.label === 'string' ? sanitizeString(r.label.slice(0, 100)) : 'Text Element',
-        enabled: Boolean(r.enabled),
-        gradientEnabled: Boolean(r.gradientEnabled),
-        gradientStart:
+      .map((r) => {
+        const out: Record<string, unknown> = {
+          id: typeof r.id === 'string' ? sanitizeString(r.id.slice(0, 50)) : `rule_${Date.now()}`,
+          selector: typeof r.selector === 'string' ? sanitizeString(r.selector.slice(0, 200)) : '',
+          label: typeof r.label === 'string' ? sanitizeString(r.label.slice(0, 100)) : 'Element',
+          enabled: Boolean(r.enabled),
+        };
+
+        // Text Options
+        if (typeof r.textOptionsEnabled === 'boolean') {
+          out.textOptionsEnabled = r.textOptionsEnabled;
+        }
+        if (typeof r.tag === 'string') {
+          out.tag = sanitizeString(r.tag.slice(0, 20));
+        }
+        if (typeof r.textColor === 'string') {
+          out.textColor = COLOR_HEX_REGEX.test(r.textColor) || r.textColor === 'inherit' ? r.textColor : '#ffffff';
+        }
+        if (typeof r.fontSize === 'number' && Number.isFinite(r.fontSize)) {
+          out.fontSize = r.fontSize;
+        }
+        if (typeof r.mobileFontSize === 'number' && Number.isFinite(r.mobileFontSize)) {
+          out.mobileFontSize = r.mobileFontSize;
+        }
+        if (typeof r.format === 'string' && ['auto', 'bold', 'italic', 'underline', 'strike'].includes(r.format)) {
+          out.format = r.format;
+        }
+        if (typeof r.align === 'string' && ['left', 'center', 'right', 'justify'].includes(r.align)) {
+          out.align = r.align;
+        }
+        if (typeof r.mobileAlign === 'string' && ['left', 'center', 'right'].includes(r.mobileAlign)) {
+          out.mobileAlign = r.mobileAlign;
+        }
+        if (typeof r.lineGap === 'number' && Number.isFinite(r.lineGap)) {
+          out.lineGap = r.lineGap;
+        }
+
+        // Text Effects (Gradient, Highlight, Underline, Shadow)
+        out.gradientEnabled = Boolean(r.gradientEnabled);
+        out.gradientStart =
           typeof r.gradientStart === 'string' && COLOR_HEX_REGEX.test(r.gradientStart)
             ? r.gradientStart
-            : '#4f46e5',
-        gradientEnd:
+            : '#4f46e5';
+        out.gradientEnd =
           typeof r.gradientEnd === 'string' && COLOR_HEX_REGEX.test(r.gradientEnd)
             ? r.gradientEnd
-            : '#06b6d4',
-        gradientAngle:
+            : '#06b6d4';
+        out.gradientAngle =
           typeof r.gradientAngle === 'number' && Number.isFinite(r.gradientAngle)
             ? r.gradientAngle
-            : 135,
-        gradientAnimate: Boolean(r.gradientAnimate),
-        highlightEnabled: Boolean(r.highlightEnabled),
-        highlightColor:
+            : 135;
+        out.gradientAnimate = Boolean(r.gradientAnimate);
+
+        out.highlightEnabled = Boolean(r.highlightEnabled);
+        out.highlightColor =
           typeof r.highlightColor === 'string' && COLOR_HEX_REGEX.test(r.highlightColor)
             ? r.highlightColor
-            : '#fef08a',
-        highlightStyle: ['underline', 'thick', 'full'].includes(r.highlightStyle as string)
+            : '#fef08a';
+        out.highlightStyle = ['underline', 'thick', 'full'].includes(r.highlightStyle as string)
           ? r.highlightStyle
-          : 'underline',
-        underlineEnabled: Boolean(r.underlineEnabled),
-        underlineColor:
+          : 'underline';
+
+        out.underlineEnabled = Boolean(r.underlineEnabled);
+        out.underlineColor =
           typeof r.underlineColor === 'string' && COLOR_HEX_REGEX.test(r.underlineColor)
             ? r.underlineColor
-            : '#0f766e',
-        underlineThickness:
+            : '#0f766e';
+        out.underlineThickness =
           typeof r.underlineThickness === 'number' && Number.isFinite(r.underlineThickness)
             ? r.underlineThickness
-            : 3,
-        underlineHover: ['always', 'hover'].includes(r.underlineHover as string)
+            : 3;
+        out.underlineHover = ['always', 'hover'].includes(r.underlineHover as string)
           ? r.underlineHover
-          : 'hover',
-        shadowEffect: ['none', 'subtle', 'glow', 'retro-3d', 'soft-drop'].includes(
+          : 'hover';
+
+        out.shadowEffect = ['none', 'subtle', 'glow', 'retro-3d', 'soft-drop'].includes(
           r.shadowEffect as string
         )
           ? r.shadowEffect
-          : 'none',
-        shadowColor:
+          : 'none';
+        out.shadowColor =
           typeof r.shadowColor === 'string' && COLOR_HEX_REGEX.test(r.shadowColor)
             ? r.shadowColor
-            : '#0f766e',
-        letterSpacing:
+            : '#0f766e';
+
+        out.letterSpacing =
           typeof r.letterSpacing === 'number' && Number.isFinite(r.letterSpacing)
             ? r.letterSpacing
-            : 0,
-      }));
+            : 0;
+
+        // Button Styles properties (if present)
+        if (typeof r.radius === 'number' && Number.isFinite(r.radius)) out.radius = r.radius;
+        if (typeof r.borderWidth === 'number' && Number.isFinite(r.borderWidth)) out.borderWidth = r.borderWidth;
+        if (typeof r.borderStyle === 'string') out.borderStyle = r.borderStyle;
+        if (typeof r.borderColor === 'string') {
+          out.borderColor = COLOR_HEX_REGEX.test(r.borderColor) ? r.borderColor : '#0f766e';
+        }
+        if (typeof r.hoverEffect === 'string') out.hoverEffect = r.hoverEffect;
+        if (typeof r.shadow === 'string') out.shadow = r.shadow;
+        if (typeof r.paddingY === 'number' && Number.isFinite(r.paddingY)) out.paddingY = r.paddingY;
+        if (typeof r.paddingX === 'number' && Number.isFinite(r.paddingX)) out.paddingX = r.paddingX;
+        if (typeof r.fontWeight === 'string') out.fontWeight = r.fontWeight;
+        if (typeof r.customColors === 'boolean') out.customColors = r.customColors;
+        if (typeof r.bg === 'string') out.bg = COLOR_HEX_REGEX.test(r.bg) ? r.bg : '#0f766e';
+        if (typeof r.useGradient === 'boolean') out.useGradient = r.useGradient;
+        if (typeof r.bgGradientEnd === 'string') {
+          out.bgGradientEnd = COLOR_HEX_REGEX.test(r.bgGradientEnd) ? r.bgGradientEnd : '#0d9488';
+        }
+        if (typeof r.fg === 'string') out.fg = COLOR_HEX_REGEX.test(r.fg) ? r.fg : '#ffffff';
+
+        return out;
+      });
   } else if ('rules' in defaults && Array.isArray((defaults as Record<string, unknown>).rules)) {
     output.rules = (defaults as Record<string, unknown>).rules;
   }
