@@ -25,7 +25,8 @@ export const textEffectsFeature: Feature<TextEffectsConfig> = {
   init(cfg: TextEffectsConfig, _env: SqspEnv): void {
     this.destroy();
 
-    if (!cfg.enabled) {
+    const hasActiveRules = Array.isArray(cfg.rules) && cfg.rules.some((r) => r && r.enabled);
+    if (cfg.enabled === false && !hasActiveRules) {
       return;
     }
 
@@ -33,21 +34,31 @@ export const textEffectsFeature: Feature<TextEffectsConfig> = {
       return;
     }
 
+    const css = generateTextEffectsCss(cfg);
+    if (!css) return;
+
     const style = document.createElement('style');
     style.setAttribute('data-sk', 'textEffects');
-    style.textContent = generateTextEffectsCss(cfg);
+    style.textContent = css;
     document.head.appendChild(style);
     styleEl = style;
   },
 
   update(cfg: TextEffectsConfig, env: SqspEnv): void {
-    if (!cfg.enabled) {
+    const hasActiveRules = Array.isArray(cfg.rules) && cfg.rules.some((r) => r && r.enabled);
+    if (cfg.enabled === false && !hasActiveRules) {
+      this.destroy();
+      return;
+    }
+
+    const css = generateTextEffectsCss(cfg);
+    if (!css) {
       this.destroy();
       return;
     }
 
     if (styleEl && document.head.contains(styleEl)) {
-      styleEl.textContent = generateTextEffectsCss(cfg);
+      styleEl.textContent = css;
     } else {
       this.init(cfg, env);
     }

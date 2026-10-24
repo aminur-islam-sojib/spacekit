@@ -74,21 +74,33 @@ export function extractTargetSelector(el: HTMLElement, kind: TargetKind = 'text'
   const tag = el.tagName.toLowerCase();
 
   // 1. Look for closest Squarespace block container with an id
-  const block = el.closest('[id^="block-"], [data-block-id], [data-sqsp-block]');
-  if (block && block.id && block !== el) {
-    if (kind === 'button') {
-      if (el.classList.contains('sqs-block-button-element')) {
-        return `#${block.id} .sqs-block-button-element`;
-      }
-      return `#${block.id} ${tag}`;
-    }
+  const block = el.closest('[id^="block-"]') as HTMLElement | null ||
+    el.closest('[data-block-id], [data-sqsp-block], .sqs-block-html') as HTMLElement | null;
 
-    const matching = Array.from(block.querySelectorAll(tag));
-    if (matching.length <= 1) {
-      return `#${block.id} ${tag}`;
+  if (block && block !== el) {
+    const blockId = block.id || (block.getAttribute('data-block-id') ? `block-${block.getAttribute('data-block-id')}` : '');
+    const blockSel = blockId ? `#${blockId}` : (block.getAttribute('data-block-id') ? `[data-block-id="${block.getAttribute('data-block-id')}"]` : '');
+
+    if (blockSel) {
+      if (kind === 'button') {
+        if (el.classList.contains('sqs-block-button-element')) {
+          return `${blockSel} .sqs-block-button-element`;
+        }
+        return `${blockSel} ${tag}`;
+      }
+
+      const parent = el.parentElement;
+      if (parent) {
+        const siblings = Array.from(parent.children).filter(
+          (c) => c.tagName.toLowerCase() === tag
+        );
+        if (siblings.length > 1) {
+          const sibIdx = siblings.indexOf(el);
+          return `${blockSel} ${tag}:nth-of-type(${sibIdx + 1})`;
+        }
+      }
+      return `${blockSel} ${tag}`;
     }
-    const idx = matching.indexOf(el);
-    return `#${block.id} ${tag}:nth-of-type(${idx + 1})`;
   }
 
   // 2. If element has its own distinct id (not auto-generated empty)

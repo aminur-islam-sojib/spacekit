@@ -9,51 +9,91 @@ export function generateRuleCss(rule: StyledTextRule): string {
 
   if (rule.textOptionsEnabled) {
     const desktopDecls: string[] = [];
+    const desktopInnerDecls: string[] = [];
 
+    // 1. Text color (applies to target and all inner spans/children)
     if (rule.textColor && !rule.gradientEnabled) {
       desktopDecls.push(`color: ${rule.textColor} !important;`);
+      desktopInnerDecls.push(`color: ${rule.textColor} !important;`);
     }
 
+    // 2. Desktop font size (applies to target and all inner spans/children)
     if (typeof rule.fontSize === 'number' && rule.fontSize > 0) {
       desktopDecls.push(`font-size: ${rule.fontSize}px !important;`);
+      desktopInnerDecls.push(`font-size: ${rule.fontSize}px !important;`);
     }
 
+    // 3. Formatting
     if (rule.format === 'bold') {
       desktopDecls.push('font-weight: 700 !important;');
+      desktopInnerDecls.push('font-weight: 700 !important;');
     } else if (rule.format === 'italic') {
       desktopDecls.push('font-style: italic !important;');
+      desktopInnerDecls.push('font-style: italic !important;');
     } else if (rule.format === 'underline') {
       desktopDecls.push('text-decoration: underline !important;');
+      desktopInnerDecls.push('text-decoration: underline !important;');
     } else if (rule.format === 'strike') {
       desktopDecls.push('text-decoration: line-through !important;');
+      desktopInnerDecls.push('text-decoration: line-through !important;');
     }
 
+    // 4. Desktop alignment
     if (rule.align) {
       desktopDecls.push(`text-align: ${rule.align} !important;`);
+      desktopDecls.push('display: block !important;');
+      desktopDecls.push('width: 100% !important;');
     }
 
+    // 5. Line gap (line-height)
     if (typeof rule.lineGap === 'number' && rule.lineGap > 0) {
       desktopDecls.push(`line-height: ${rule.lineGap} !important;`);
+      desktopInnerDecls.push(`line-height: ${rule.lineGap} !important;`);
     }
 
     if (desktopDecls.length > 0) {
-      textOptionsDesktopCss = `\n  ${desktopDecls.join('\n  ')}`;
+      textOptionsDesktopCss = `
+${targetSel} {
+  ${desktopDecls.join('\n  ')}
+}
+${targetSel} *,
+${targetSel} span {
+  ${desktopInnerDecls.join('\n  ')}
+}
+`;
     }
 
+    // Mobile overrides (@media (max-width: 767px) + Squarespace in-editor mobile view)
     const mobileDecls: string[] = [];
+    const mobileInnerDecls: string[] = [];
     if (typeof rule.mobileFontSize === 'number' && rule.mobileFontSize > 0) {
       mobileDecls.push(`font-size: ${rule.mobileFontSize}px !important;`);
+      mobileInnerDecls.push(`font-size: ${rule.mobileFontSize}px !important;`);
     }
     if (rule.mobileAlign) {
       mobileDecls.push(`text-align: ${rule.mobileAlign} !important;`);
+      mobileDecls.push('display: block !important;');
+      mobileDecls.push('width: 100% !important;');
     }
 
     if (mobileDecls.length > 0) {
       textOptionsMobileCss = `
-@media (max-width: 767px) {
+@media (max-width: 767px), (max-device-width: 767px) {
   ${targetSel} {
     ${mobileDecls.join('\n    ')}
   }
+  ${targetSel} *,
+  ${targetSel} span {
+    ${mobileInnerDecls.join('\n    ')}
+  }
+}
+body.sqs-mobile-view ${targetSel},
+.sqs-layout-preview-mobile ${targetSel} {
+  ${mobileDecls.join('\n  ')}
+}
+body.sqs-mobile-view ${targetSel} *,
+.sqs-layout-preview-mobile ${targetSel} * {
+  ${mobileInnerDecls.join('\n  ')}
 }
 `;
     }
@@ -167,10 +207,9 @@ ${selHoverAfter} {
   }
 
   const baseRules =
-    gradientCss || shadowCss || letterSpacingCss || textOptionsDesktopCss
+    gradientCss || shadowCss || letterSpacingCss
       ? `
 ${targetSel} {
-  ${textOptionsDesktopCss.trim()}
   ${gradientCss.trim()}
   ${shadowCss}
   ${letterSpacingCss}
@@ -189,6 +228,7 @@ ${targetSel} {
 `;
 
   return `
+${textOptionsDesktopCss}
 ${baseRules}
 ${textOptionsMobileCss}
 ${highlightRules}
@@ -199,7 +239,11 @@ ${reducedMotionRules}
 }
 
 export function generateTextEffectsCss(cfg: TextEffectsConfig): string {
-  if (!cfg.enabled || !Array.isArray(cfg.rules) || cfg.rules.length === 0) {
+  if (!Array.isArray(cfg.rules) || cfg.rules.length === 0) {
+    return '';
+  }
+
+  if (cfg.enabled === false && !cfg.rules.some((r) => r && r.enabled)) {
     return '';
   }
 

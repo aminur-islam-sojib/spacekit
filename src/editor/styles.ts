@@ -751,34 +751,43 @@ h2 {
   border-top: 1px solid #f4f4f5;
 }
 
-.tag-select-wrapper {
-  position: relative;
-  margin-bottom: 6px;
+.tag-text-label {
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 2px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  letter-spacing: -0.01em;
 }
 
-.tag-select {
-  width: 100%;
-  padding: 8px 12px;
-  border-radius: 10px;
-  background: #f8fafc;
+.color-picker-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.color-swatch-input {
+  width: 38px;
+  height: 38px;
+  padding: 2px;
   border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #ffffff;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.color-hex-input {
+  flex: 1;
+  padding: 9px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
   font-size: 13px;
+  font-family: monospace;
   font-weight: 600;
   color: #0f172a;
-  cursor: pointer;
-  appearance: none;
-  -webkit-appearance: none;
-  padding-right: 32px;
-}
-
-.tag-select-chevron {
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  pointer-events: none;
-  font-size: 11px;
-  color: #64748b;
 }
 
 .section-desc {

@@ -3,6 +3,23 @@ import type { StyledTextRule, TextEffectsConfig } from '../../features/textEffec
 import { createDefaultTextRule } from '../../features/textEffects/schema.js';
 import { startPicker } from '../picker.js';
 
+function getTagDisplayName(t: string): string {
+  switch (t.toLowerCase()) {
+    case 'h1':
+      return 'Heading 1';
+    case 'h2':
+      return 'Heading 2';
+    case 'h3':
+      return 'Heading 3';
+    case 'h4':
+      return 'Heading 4';
+    case 'p':
+      return 'Paragraph';
+    default:
+      return t.toUpperCase();
+  }
+}
+
 interface TextEffectsEditorProps {
   config: Record<string, unknown>;
   activeSelector?: string | null;
@@ -79,6 +96,9 @@ export function TextEffectsEditor({
     if (!activeRule) return;
     const nextRules = rules.map((r) => (r.id === activeRule.id ? { ...r, [key]: val } : r));
     onUpdateValue('rules', nextRules);
+    if (!enabled) {
+      onUpdateValue('enabled', true);
+    }
   };
 
   const handleResetTextOptions = () => {
@@ -95,42 +115,6 @@ export function TextEffectsEditor({
             align: 'left' as const,
             mobileAlign: 'left' as const,
             lineGap: 1.2,
-          }
-        : r
-    );
-    onUpdateValue('rules', nextRules);
-  };
-
-  const handleTagChange = (newTag: string) => {
-    if (!activeRule) return;
-    const oldTag = activeRule.tag || 'h2';
-    let nextSel = activeRule.selector;
-    if (oldTag && nextSel.includes(oldTag)) {
-      nextSel = nextSel.replace(new RegExp(`\\b${oldTag}\\b`, 'g'), newTag);
-    }
-    const getTagDisplayName = (t: string) => {
-      switch (t.toLowerCase()) {
-        case 'h1':
-          return 'Heading 1';
-        case 'h2':
-          return 'Heading 2';
-        case 'h3':
-          return 'Heading 3';
-        case 'h4':
-          return 'Heading 4';
-        case 'p':
-          return 'Paragraph';
-        default:
-          return t.toUpperCase();
-      }
-    };
-    const nextRules = rules.map((r) =>
-      r.id === activeRule.id
-        ? {
-            ...r,
-            tag: newTag,
-            selector: nextSel,
-            label: r.label.replace(/Heading \d|Paragraph/i, getTagDisplayName(newTag)),
           }
         : r
     );
@@ -197,19 +181,6 @@ export function TextEffectsEditor({
         ) : null}
       </div>
 
-      {/* Activation card */}
-      <div class="field-group">
-        <label class="row">
-          <span>Enable custom text designs</span>
-          <input
-            type="checkbox"
-            data-k="enabled"
-            checked={enabled}
-            onChange={(e) => onUpdateValue('enabled', (e.target as HTMLInputElement).checked)}
-          />
-        </label>
-      </div>
-
       {activeRule ? (
         /* SINGLE FOCUSED ELEMENT PROPERTY INSPECTOR */
         <div class="focused-inspector">
@@ -247,20 +218,9 @@ export function TextEffectsEditor({
 
             {activeRule.textOptionsEnabled && (
               <div class="section-body">
-                {/* Heading tag select */}
-                <div class="tag-select-wrapper">
-                  <select
-                    class="tag-select"
-                    value={activeRule.tag || 'h2'}
-                    onChange={(e) => handleTagChange((e.target as HTMLSelectElement).value)}
-                  >
-                    <option value="h1">Heading 1</option>
-                    <option value="h2">Heading 2</option>
-                    <option value="h3">Heading 3</option>
-                    <option value="h4">Heading 4</option>
-                    <option value="p">Paragraph</option>
-                  </select>
-                  <span class="tag-select-chevron">▾</span>
+                {/* Heading tag text indicator */}
+                <div class="tag-text-label">
+                  {getTagDisplayName(activeRule.tag || 'h2')}
                 </div>
 
                 <p class="section-desc">Adjust font size, color, alignment, spacing, and formatting.</p>
@@ -268,13 +228,24 @@ export function TextEffectsEditor({
                 {/* Color */}
                 <label>
                   <span>Color</span>
-                  <input
-                    type="color"
-                    value={activeRule.textColor || '#18181b'}
-                    onInput={(e) =>
-                      handleUpdateActiveRule('textColor', (e.target as HTMLInputElement).value)
-                    }
-                  />
+                  <div class="color-picker-row">
+                    <input
+                      type="color"
+                      class="color-swatch-input"
+                      value={activeRule.textColor || '#ffffff'}
+                      onInput={(e) =>
+                        handleUpdateActiveRule('textColor', (e.target as HTMLInputElement).value)
+                      }
+                    />
+                    <input
+                      type="text"
+                      class="color-hex-input"
+                      value={activeRule.textColor || '#ffffff'}
+                      onInput={(e) =>
+                        handleUpdateActiveRule('textColor', (e.target as HTMLInputElement).value)
+                      }
+                    />
+                  </div>
                 </label>
 
                 {/* Size (Desktop) */}

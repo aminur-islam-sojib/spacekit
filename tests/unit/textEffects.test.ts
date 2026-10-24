@@ -292,6 +292,7 @@ describe('Feature: Text & Heading Effects (TC-TE01..TC-TE10)', () => {
     const css = document.querySelector('style[data-sk="textEffects"]')?.textContent || '';
 
     expect(css).toContain('#block-heading h2');
+    expect(css).toContain('#block-heading h2 span');
     expect(css).toContain('color: #2563eb !important;');
     expect(css).toContain('font-size: 54px !important;');
     expect(css).toContain('font-weight: 700 !important;');
@@ -322,6 +323,7 @@ describe('Feature: Text & Heading Effects (TC-TE01..TC-TE10)', () => {
     expect(css).toContain('@media (max-width: 767px)');
     expect(css).toContain('font-size: 30px !important;');
     expect(css).toContain('text-align: center !important;');
+    expect(css).toContain('body.sqs-mobile-view #block-heading h2');
   });
 
   it('TC-TE13: omits typography overrides when textOptionsEnabled is false', () => {

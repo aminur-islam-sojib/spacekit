@@ -58,7 +58,7 @@ export function createDefaultTextRule(id: string = `rule_${Date.now()}`): Styled
     // Text options
     textOptionsEnabled: true,
     tag: 'h2',
-    textColor: '#18181b',
+    textColor: '#ffffff',
     fontSize: 48,
     mobileFontSize: 32,
     format: 'auto',
@@ -90,7 +90,7 @@ export function createDefaultTextRule(id: string = `rule_${Date.now()}`): Styled
 }
 
 export const textEffectsDefaults: TextEffectsConfig = {
-  enabled: false,
+  enabled: true,
   rules: [],
 };
 

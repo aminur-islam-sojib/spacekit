@@ -349,7 +349,8 @@ describe('Editor Panel (TC-E04, TC-E05, TC-E08, TC-E09, TC-E10, TC-E11, TC-E12)'
     expect(shadow.querySelector('.section-title')?.textContent).toContain('Text options');
 
     // Section body should be visible because textOptionsEnabled is true by default
-    expect(shadow.querySelector('.tag-select')).not.toBeNull();
+    expect(shadow.querySelector('.tag-text-label')).not.toBeNull();
+    expect(shadow.querySelector('.tag-text-label')?.textContent).toContain('Heading 2');
     expect(shadow.querySelector('.segmented-group')).not.toBeNull();
   });
 });
