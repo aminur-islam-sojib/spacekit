@@ -28,6 +28,8 @@ describe('Editor Panel (TC-E04, TC-E05, TC-E08, TC-E09, TC-E10, TC-E11, TC-E12)'
     });
     const host = document.getElementById('sitekit-host');
     expect(host).not.toBeNull();
+    expect(host?.style.position).toBe('relative');
+    expect(host?.style.zIndex).toBe('2147483647');
     expect(host?.shadowRoot).not.toBeNull();
 
     const fab = host?.shadowRoot?.querySelector('.fab') as HTMLButtonElement;

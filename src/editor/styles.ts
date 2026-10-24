@@ -6,7 +6,8 @@
 export const EDITOR_CSS = `
 :host {
   all: initial;
-  position: static;
+  position: relative;
+  z-index: 2147483647;
 }
 
 *, *::before, *::after {
@@ -31,7 +32,7 @@ export const EDITOR_CSS = `
   box-shadow: 0 8px 24px rgba(15, 118, 110, 0.4);
   display: grid;
   place-items: center;
-  z-index: 2147483640;
+  z-index: 2147483646;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -57,7 +58,7 @@ export const EDITOR_CSS = `
   border-radius: 20px;
   border: 1px solid rgba(0, 0, 0, 0.06);
   box-shadow: 0 24px 60px -10px rgba(0, 0, 0, 0.22), 0 0 0 1px rgba(0, 0, 0, 0.04);
-  z-index: 2147483641;
+  z-index: 2147483647;
   overflow: hidden;
 }
 

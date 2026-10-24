@@ -4,6 +4,8 @@ import {
   extractTargetLabel,
   startPicker,
   startInspector,
+  setActiveCanvasSelection,
+  clearActiveCanvasSelection,
 } from '../../src/editor/picker.js';
 
 describe('Target Picker (TC-TP01..TC-TP05)', () => {
@@ -164,5 +166,41 @@ describe('Target Picker (TC-TP01..TC-TP05)', () => {
     );
 
     cleanup();
+  });
+
+  it('TC-TP08: canvas overlays and selection frame have z-index strictly below editor panel (<= 2147483640)', () => {
+    // 1. Check picker highlight
+    const cleanupPicker = startPicker({ onSelect: vi.fn() });
+    const pickerEl = document.querySelector('[data-sk="picker-highlight"]') as HTMLElement;
+    expect(pickerEl).not.toBeNull();
+    const pickerZIndex = parseInt(pickerEl.style.zIndex, 10);
+    expect(pickerZIndex).toBeLessThan(2147483647);
+    expect(pickerZIndex).toBeLessThanOrEqual(2147483640);
+    cleanupPicker();
+
+    // 2. Check inspector highlight
+    const cleanupInspector = startInspector({ onSelect: vi.fn() });
+    const inspectorEl = document.querySelector('[data-sk="inspector-highlight"]') as HTMLElement;
+    expect(inspectorEl).not.toBeNull();
+    const inspectorZIndex = parseInt(inspectorEl.style.zIndex, 10);
+    expect(inspectorZIndex).toBeLessThan(2147483647);
+    expect(inspectorZIndex).toBeLessThanOrEqual(2147483640);
+    cleanupInspector();
+
+    // 3. Check active selection frame
+    const h1 = document.createElement('h1');
+    h1.id = 'target-title';
+    h1.textContent = 'Hero Element';
+    document.body.appendChild(h1);
+
+    setActiveCanvasSelection('#target-title', 'Hero Element');
+    const frame = document.querySelector('[data-sk="active-selection"]') as HTMLElement;
+    expect(frame).not.toBeNull();
+    const frameZIndex = parseInt(frame.style.zIndex, 10);
+    expect(frameZIndex).toBeLessThan(2147483647);
+    expect(frameZIndex).toBeLessThanOrEqual(2147483640);
+
+    clearActiveCanvasSelection();
+    expect(document.querySelector('[data-sk="active-selection"]')).toBeNull();
   });
 });

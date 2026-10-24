@@ -28,6 +28,8 @@ export function mountEditor(): void {
   const host = document.createElement('div');
   host.id = 'sitekit-host';
   host.setAttribute('data-sk', 'host');
+  host.style.position = 'relative';
+  host.style.zIndex = '2147483647';
   document.body.appendChild(host);
 
   const shadowRoot = host.attachShadow({ mode: 'open' });

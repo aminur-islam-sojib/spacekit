@@ -147,7 +147,7 @@ export function startPicker(options: PickerOptions): () => void {
   const highlight = document.createElement('div');
   highlight.setAttribute('data-sk', 'picker-highlight');
   highlight.style.cssText =
-    'position:fixed;pointer-events:none;border:2px solid #0f766e;background:rgba(15,118,110,0.14);border-radius:6px;z-index:2147483647;display:none;box-sizing:border-box;box-shadow:0 0 16px rgba(15,118,110,0.35);transition:all 0.05s ease;';
+    'position:fixed;pointer-events:none;border:2px solid #0f766e;background:rgba(15,118,110,0.14);border-radius:6px;z-index:2147483640;display:none;box-sizing:border-box;box-shadow:0 0 16px rgba(15,118,110,0.35);transition:all 0.05s ease;';
 
   const badge = document.createElement('div');
   badge.style.cssText =
@@ -282,7 +282,7 @@ export function startInspector(options: InspectorOptions): () => void {
   const highlight = document.createElement('div');
   highlight.setAttribute('data-sk', 'inspector-highlight');
   highlight.style.cssText =
-    'position:fixed;pointer-events:none;border:2px solid #0f766e;background:rgba(15,118,110,0.12);border-radius:6px;z-index:2147483645;display:none;box-sizing:border-box;box-shadow:0 0 16px rgba(15,118,110,0.3);transition:all 0.05s ease;cursor:pointer;';
+    'position:fixed;pointer-events:none;border:2px solid #0f766e;background:rgba(15,118,110,0.12);border-radius:6px;z-index:2147483638;display:none;box-sizing:border-box;box-shadow:0 0 16px rgba(15,118,110,0.3);transition:all 0.05s ease;cursor:pointer;';
 
   const badge = document.createElement('div');
   badge.style.cssText =
@@ -433,7 +433,7 @@ export function setActiveCanvasSelection(
   const frame = document.createElement('div');
   frame.setAttribute('data-sk', 'active-selection');
   frame.style.cssText =
-    'position:fixed;pointer-events:none;border:2px solid #0f766e;border-radius:8px;z-index:2147483644;box-sizing:border-box;box-shadow:0 0 0 3px rgba(15,118,110,0.25), 0 4px 16px rgba(15,118,110,0.3);transition:top 0.1s ease, left 0.1s ease, width 0.1s ease, height 0.1s ease;';
+    'position:fixed;pointer-events:none;border:2px solid #0f766e;border-radius:8px;z-index:2147483636;box-sizing:border-box;box-shadow:0 0 0 3px rgba(15,118,110,0.25), 0 4px 16px rgba(15,118,110,0.3);transition:top 0.1s ease, left 0.1s ease, width 0.1s ease, height 0.1s ease;';
 
   const miniToolbar = document.createElement('div');
   miniToolbar.style.cssText =
