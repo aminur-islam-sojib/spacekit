@@ -141,6 +141,13 @@ describe('Schema Validator (TC-C05, TC-C16, TC-S01, TC-S02)', () => {
             align: 'center',
             mobileAlign: 'center',
             lineGap: 1.3,
+            effectType: 'stroke',
+            effectTextColor: '#f43f5e',
+            effectAccentColor: '#0ea5e9',
+            effectApplyTo: 'first-word',
+            effectSpeed: 'fast',
+            effectAngle: 90,
+            effectThickness: 3,
           },
         ],
       };
@@ -160,6 +167,13 @@ describe('Schema Validator (TC-C05, TC-C16, TC-S01, TC-S02)', () => {
       expect(rules[0].align).toBe('center');
       expect(rules[0].mobileAlign).toBe('center');
       expect(rules[0].lineGap).toBe(1.3);
+      expect(rules[0].effectType).toBe('stroke');
+      expect(rules[0].effectTextColor).toBe('#f43f5e');
+      expect(rules[0].effectAccentColor).toBe('#0ea5e9');
+      expect(rules[0].effectApplyTo).toBe('first-word');
+      expect(rules[0].effectSpeed).toBe('fast');
+      expect(rules[0].effectAngle).toBe(90);
+      expect(rules[0].effectThickness).toBe(3);
     });
   });
 

@@ -1,5 +1,40 @@
 import type { Field } from '../../shared/types.js';
 
+export type TextEffectType =
+  | 'none'
+  | 'gradient'
+  | 'fill-on-scroll'
+  | 'reveal-on-scroll'
+  | 'underline'
+  | 'stroke'
+  | 'colorful'
+  | 'fill'
+  | 'strong-fill'
+  | 'candy-cane';
+
+export type TextEffectApplyTo = 'all' | 'first-word' | 'last-word';
+export type TextEffectSpeed = 'slow' | 'medium' | 'fast';
+
+export interface EffectDescriptor {
+  id: TextEffectType;
+  name: string;
+  previewTitle: string;
+  previewSubtitle: string;
+}
+
+export const TEXT_EFFECTS_CATALOG: EffectDescriptor[] = [
+  { id: 'none', name: 'None', previewTitle: 'Standard Text', previewSubtitle: 'No extra effect applied' },
+  { id: 'gradient', name: 'Gradient animated', previewTitle: 'Gradient Text', previewSubtitle: 'Animated Or Static' },
+  { id: 'fill-on-scroll', name: 'Fill on scroll', previewTitle: 'Fill On Scroll', previewSubtitle: 'Fills as you scroll' },
+  { id: 'reveal-on-scroll', name: 'Reveal on scroll', previewTitle: 'Reveal On Scroll', previewSubtitle: 'Sharpens into view' },
+  { id: 'underline', name: 'Underline', previewTitle: 'Accent Underline', previewSubtitle: 'Expanding accent line' },
+  { id: 'stroke', name: 'Stroke', previewTitle: 'Outlined Stroke', previewSubtitle: 'Hollow modern contour' },
+  { id: 'colorful', name: 'Colorful', previewTitle: 'Colorful Palette', previewSubtitle: 'Multi-color vibrant tones' },
+  { id: 'fill', name: 'Fill', previewTitle: 'Marker Fill', previewSubtitle: 'Subtle highlighter tape' },
+  { id: 'strong-fill', name: 'Strong fill', previewTitle: 'Strong Fill', previewSubtitle: 'Bold solid badge' },
+  { id: 'candy-cane', name: 'Candy cane', previewTitle: 'Candy Cane', previewSubtitle: 'Diagonal barber stripes' },
+];
+
 export interface StyledTextRule {
   id: string;
   selector: string;
@@ -17,30 +52,35 @@ export interface StyledTextRule {
   mobileAlign?: 'left' | 'center' | 'right';
   lineGap?: number;             // Line height (e.g. 1.2 or 1.5)
 
-  // Gradient text
-  gradientEnabled: boolean;
-  gradientStart: string;
-  gradientEnd: string;
-  gradientAngle: number;
-  gradientAnimate: boolean;
+  // Visual Text Effects (FR-TE12)
+  effectType?: TextEffectType;
+  effectTextColor?: string;     // Text / primary effect color
+  effectAccentColor?: string;   // Accent / secondary effect color
+  effectApplyTo?: TextEffectApplyTo; // 'all' | 'first-word' | 'last-word'
+  effectSpeed?: TextEffectSpeed;     // 'slow' | 'medium' | 'fast'
+  effectAngle?: number;         // Angle in degrees for gradients / candy-cane
+  effectThickness?: number;     // Pixel thickness for stroke / underline
 
-  // Highlighter effect
-  highlightEnabled: boolean;
-  highlightColor: string;
-  highlightStyle: 'underline' | 'thick' | 'full';
+  // Legacy/Individual effect fallbacks
+  gradientEnabled?: boolean;
+  gradientStart?: string;
+  gradientEnd?: string;
+  gradientAngle?: number;
+  gradientAnimate?: boolean;
 
-  // Creative underline
-  underlineEnabled: boolean;
-  underlineColor: string;
-  underlineThickness: number;
-  underlineHover: 'always' | 'hover';
+  highlightEnabled?: boolean;
+  highlightColor?: string;
+  highlightStyle?: 'underline' | 'thick' | 'full';
 
-  // Shadow & Glow
-  shadowEffect: 'none' | 'subtle' | 'glow' | 'retro-3d' | 'soft-drop';
-  shadowColor: string;
+  underlineEnabled?: boolean;
+  underlineColor?: string;
+  underlineThickness?: number;
+  underlineHover?: 'always' | 'hover';
 
-  // Typography
-  letterSpacing: number;
+  shadowEffect?: 'none' | 'subtle' | 'glow' | 'retro-3d' | 'soft-drop';
+  shadowColor?: string;
+
+  letterSpacing?: number;
 }
 
 export interface TextEffectsConfig extends Record<string, unknown> {
@@ -66,25 +106,15 @@ export function createDefaultTextRule(id: string = `rule_${Date.now()}`): Styled
     mobileAlign: 'left',
     lineGap: 1.2,
 
-    // Gradient text
-    gradientEnabled: false,
-    gradientStart: '#4f46e5',
-    gradientEnd: '#06b6d4',
-    gradientAngle: 135,
-    gradientAnimate: false,
+    // Visual Text Effects
+    effectType: 'none',
+    effectApplyTo: 'all',
+    effectSpeed: 'medium',
 
-    highlightEnabled: false,
-    highlightColor: '#fef08a',
+    // Legacy effect defaults
     highlightStyle: 'underline',
-
-    underlineEnabled: false,
-    underlineColor: '#0f766e',
-    underlineThickness: 3,
     underlineHover: 'hover',
-
     shadowEffect: 'none',
-    shadowColor: '#0f766e',
-
     letterSpacing: 0,
   };
 }

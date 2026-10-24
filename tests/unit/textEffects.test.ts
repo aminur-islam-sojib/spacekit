@@ -355,4 +355,209 @@ describe('Feature: Text & Heading Effects (TC-TE01..TC-TE10)', () => {
     expect(css).not.toContain('line-height: 1.5 !important;');
     expect(css).not.toContain('@media (max-width: 767px)');
   });
+
+  it('TC-TE14: generates stroke, colorful, candy-cane, and strong-fill visual effects', () => {
+    // 1. Stroke
+    textEffectsFeature.init(
+      {
+        enabled: true,
+        rules: [
+          {
+            ...createDefaultTextRule('r_stroke'),
+            selector: '#stroke-h1',
+            effectType: 'stroke',
+            effectAccentColor: '#0ea5e9',
+            effectThickness: 3,
+          },
+        ],
+      },
+      mockEnv
+    );
+    let css = document.querySelector('style[data-sk="textEffects"]')?.textContent || '';
+    expect(css).toContain('-webkit-text-stroke: 3px #0ea5e9 !important;');
+
+    // 2. Candy-cane
+    textEffectsFeature.update(
+      {
+        enabled: true,
+        rules: [
+          {
+            ...createDefaultTextRule('r_candy'),
+            selector: '#candy-h1',
+            effectType: 'candy-cane',
+            effectTextColor: '#ef4444',
+            effectAccentColor: '#ffffff',
+            effectAngle: 45,
+          },
+        ],
+      },
+      mockEnv
+    );
+    css = document.querySelector('style[data-sk="textEffects"]')?.textContent || '';
+    expect(css).toContain('repeating-linear-gradient(45deg, #ef4444, #ef4444 10px, #ffffff 10px, #ffffff 20px)');
+    expect(css).toContain('animation: sitekit-candycane-move');
+
+    // 3. Colorful
+    textEffectsFeature.update(
+      {
+        enabled: true,
+        rules: [
+          {
+            ...createDefaultTextRule('r_colorful'),
+            selector: '#color-h1',
+            effectType: 'colorful',
+          },
+        ],
+      },
+      mockEnv
+    );
+    css = document.querySelector('style[data-sk="textEffects"]')?.textContent || '';
+    expect(css).toContain('sitekit-colorful-shimmer');
+
+    // 4. Strong-fill
+    textEffectsFeature.update(
+      {
+        enabled: true,
+        rules: [
+          {
+            ...createDefaultTextRule('r_strong'),
+            selector: '#strong-h1',
+            effectType: 'strong-fill',
+            effectTextColor: '#ffffff',
+            effectAccentColor: '#0f172a',
+          },
+        ],
+      },
+      mockEnv
+    );
+    css = document.querySelector('style[data-sk="textEffects"]')?.textContent || '';
+    expect(css).toContain('background-color: #0f172a !important;');
+  });
+
+  it('TC-TE15: generates fill-on-scroll and reveal-on-scroll styles', () => {
+    textEffectsFeature.init(
+      {
+        enabled: true,
+        rules: [
+          {
+            ...createDefaultTextRule('r_fill_scroll'),
+            selector: '#fill-scroll-h1',
+            effectType: 'fill-on-scroll',
+            effectTextColor: '#94a3b8',
+            effectAccentColor: '#0f766e',
+          },
+          {
+            ...createDefaultTextRule('r_reveal_scroll'),
+            selector: '#reveal-scroll-h1',
+            effectType: 'reveal-on-scroll',
+          },
+        ],
+      },
+      mockEnv
+    );
+    const css = document.querySelector('style[data-sk="textEffects"]')?.textContent || '';
+    expect(css).toContain('linear-gradient(to right, #0f766e var(--sk-scroll-fill, 50%), #94a3b8 var(--sk-scroll-fill, 50%))');
+    expect(css).toContain('#reveal-scroll-h1:not(.sk-revealed)');
+    expect(css).toContain('filter: blur(6px) !important;');
+  });
+
+  it('TC-TE16: applies word targeting by wrapping first or last word and unwraps on destroy()', () => {
+    const h1 = document.createElement('h1');
+    h1.id = 'word-target-h1';
+    h1.textContent = 'Photographe Créateur de contenu';
+    document.body.appendChild(h1);
+
+    textEffectsFeature.init(
+      {
+        enabled: true,
+        rules: [
+          {
+            ...createDefaultTextRule('r_first_word'),
+            selector: '#word-target-h1',
+            effectType: 'gradient',
+            effectApplyTo: 'first-word',
+          },
+        ],
+      },
+      mockEnv
+    );
+
+    const firstWordSpan = h1.querySelector('[data-sk-word="first"]');
+    expect(firstWordSpan).not.toBeNull();
+    expect(firstWordSpan?.textContent).toBe('Photographe');
+
+    const css = document.querySelector('style[data-sk="textEffects"]')?.textContent || '';
+    expect(css).toContain('#word-target-h1 [data-sk-word="first"]');
+
+    // On destroy, wrapped span should be cleanly unwrapped
+    textEffectsFeature.destroy();
+    expect(h1.querySelector('[data-sk-word]')).toBeNull();
+    expect(h1.textContent).toBe('Photographe Créateur de contenu');
+  });
+
+  it('TC-TE17: adjusts animation speed according to effectSpeed', () => {
+    textEffectsFeature.init(
+      {
+        enabled: true,
+        rules: [
+          {
+            ...createDefaultTextRule('r_speed_fast'),
+            selector: '#speed-h1',
+            effectType: 'gradient',
+            effectSpeed: 'fast',
+          },
+        ],
+      },
+      mockEnv
+    );
+    let css = document.querySelector('style[data-sk="textEffects"]')?.textContent || '';
+    expect(css).toContain('sitekit-text-gradient-pan 2.5s');
+
+    textEffectsFeature.update(
+      {
+        enabled: true,
+        rules: [
+          {
+            ...createDefaultTextRule('r_speed_slow'),
+            selector: '#speed-h1',
+            effectType: 'gradient',
+            effectSpeed: 'slow',
+          },
+        ],
+      },
+      mockEnv
+    );
+    css = document.querySelector('style[data-sk="textEffects"]')?.textContent || '';
+    expect(css).toContain('sitekit-text-gradient-pan 9s');
+  });
+
+  it('TC-TE18: Text Options and Text Effects coexist orthogonally without conflicting', () => {
+    textEffectsFeature.init(
+      {
+        enabled: true,
+        rules: [
+          {
+            ...createDefaultTextRule('r_combo'),
+            selector: '#combo-h1',
+            textOptionsEnabled: true,
+            fontSize: 64,
+            align: 'center',
+            lineGap: 1.1,
+            effectType: 'gradient',
+            effectTextColor: '#f43f5e',
+            effectAccentColor: '#3b82f6',
+          },
+        ],
+      },
+      mockEnv
+    );
+    const css = document.querySelector('style[data-sk="textEffects"]')?.textContent || '';
+    // Typography is preserved
+    expect(css).toContain('font-size: 64px !important;');
+    expect(css).toContain('text-align: center !important;');
+    expect(css).toContain('line-height: 1.1 !important;');
+    // Effect is layered on top
+    expect(css).toContain('linear-gradient(135deg, #f43f5e, #3b82f6, #f43f5e)');
+    expect(css).toContain('-webkit-text-fill-color: transparent !important;');
+  });
 });

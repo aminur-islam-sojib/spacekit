@@ -1121,6 +1121,303 @@ input[type="range"] {
   margin-bottom: 8px;
 }
 
+/* Dynamic Text Effects UI & Popover */
+.effect-dropdown-wrap {
+  position: relative;
+}
+
+.effect-dropdown-trigger {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #0f172a;
+  background: #ffffff;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s ease;
+}
+
+.effect-dropdown-trigger:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.effect-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 6px;
+  width: 220px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 12px 28px -4px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.05);
+  overflow: visible;
+  z-index: 100;
+  list-style: none;
+  padding: 4px 0;
+}
+
+.effect-menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #1e293b;
+  cursor: pointer;
+  border-bottom: 1px solid #f8fafc;
+  transition: background 0.15s ease, color 0.15s ease;
+  position: relative;
+}
+
+.effect-menu-item:last-child {
+  border-bottom: none;
+}
+
+.effect-menu-item:hover {
+  background: #f1f5f9;
+  color: #0f766e;
+}
+
+.effect-menu-item.active {
+  font-weight: 600;
+  color: #0f766e;
+  background: #f0fdfa;
+}
+
+.effect-menu-check {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f766e;
+}
+
+/* Floating Hover Preview Popover Card */
+.effect-hover-popover {
+  position: absolute;
+  left: 100%;
+  top: -10px;
+  margin-left: 12px;
+  width: 170px;
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 14px;
+  padding: 14px 12px;
+  box-shadow: 0 20px 32px -8px rgba(0, 0, 0, 0.18), 0 0 0 1px rgba(0, 0, 0, 0.04);
+  pointer-events: none;
+  z-index: 200;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.popover-title {
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.popover-subtitle {
+  font-size: 11px;
+  font-weight: 500;
+  color: #64748b;
+  line-height: 1.2;
+}
+
+/* Popover Specimen Classes */
+.popover-preview-gradient {
+  background: linear-gradient(135deg, #c026d3, #2563eb);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+.popover-preview-stroke {
+  -webkit-text-stroke: 1px #0f172a;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+}
+
+.popover-preview-underline {
+  text-decoration: underline;
+  text-decoration-color: #0f766e;
+  text-decoration-thickness: 2px;
+  color: #0f172a;
+}
+
+.popover-preview-colorful {
+  background: linear-gradient(135deg, #f43f5e, #8b5cf6, #06b6d4, #10b981);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+.popover-preview-fill {
+  background: linear-gradient(to top, #fef08a 45%, transparent 45%);
+  color: #0f172a;
+}
+
+.popover-preview-strong-fill {
+  background: #0f172a;
+  color: #ffffff;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.popover-preview-candy-cane {
+  background: repeating-linear-gradient(45deg, #ef4444, #ef4444 6px, #ffffff 6px, #ffffff 12px);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+.popover-preview-fill-on-scroll {
+  background: linear-gradient(to right, #0f766e 60%, #94a3b8 60%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+.popover-preview-reveal-on-scroll {
+  filter: blur(0.8px);
+  color: #0f172a;
+}
+
+/* Color Swatch Row with Clear Button */
+.color-swatch-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid #f8fafc;
+}
+
+.color-swatch-row:last-of-type {
+  border-bottom: none;
+}
+
+.color-swatch-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #1e293b;
+}
+
+.color-swatch-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+}
+
+.color-swatch-circle {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(0, 0, 0, 0.15);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  display: block;
+}
+
+.color-swatch-circle input[type="color"] {
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  width: 50px;
+  height: 50px;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.swatch-clear-btn {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #64748b;
+  font-size: 10px;
+  font-weight: 700;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  line-height: 1;
+  transition: all 0.15s ease;
+}
+
+.swatch-clear-btn:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+  border-color: #94a3b8;
+}
+
+/* Stepper Row (< All words > and - Medium +) */
+.stepper-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid #f8fafc;
+}
+
+.stepper-row:last-of-type {
+  border-bottom: none;
+}
+
+.stepper-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #1e293b;
+}
+
+.stepper-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.stepper-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  color: #475569;
+  font-size: 13px;
+  font-weight: 600;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.stepper-btn:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  color: #0f172a;
+}
+
+.stepper-value {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #334155;
+  min-width: 65px;
+  text-align: center;
+  user-select: none;
+}
+
 @media (max-width: 480px) {
   .panel {
     left: 12px !important;

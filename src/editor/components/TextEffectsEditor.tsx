@@ -1,6 +1,13 @@
 import { useState } from 'preact/hooks';
-import type { StyledTextRule, TextEffectsConfig } from '../../features/textEffects/schema.js';
-import { createDefaultTextRule } from '../../features/textEffects/schema.js';
+import {
+  type StyledTextRule,
+  type TextEffectsConfig,
+  type TextEffectType,
+  type TextEffectApplyTo,
+  type TextEffectSpeed,
+  TEXT_EFFECTS_CATALOG,
+  createDefaultTextRule,
+} from '../../features/textEffects/schema.js';
 import { startPicker } from '../picker.js';
 
 function getTagDisplayName(t: string): string {
@@ -39,6 +46,8 @@ export function TextEffectsEditor({
 }: TextEffectsEditorProps) {
   const [isPicking, setIsPicking] = useState(false);
   const [showDrawer, setShowDrawer] = useState(false);
+  const [isEffectsMenuOpen, setIsEffectsMenuOpen] = useState(false);
+  const [hoveredEffectId, setHoveredEffectId] = useState<TextEffectType | null>(null);
 
   const cfg = config as unknown as TextEffectsConfig;
   const enabled = Boolean(cfg.enabled);
@@ -101,50 +110,107 @@ export function TextEffectsEditor({
     }
   };
 
-  const handleResetTextOptions = () => {
-    if (!activeRule) return;
-    const nextRules = rules.map((r) =>
-      r.id === activeRule.id
-        ? {
-            ...r,
-            textOptionsEnabled: false,
-            textColor: '#18181b',
-            fontSize: 48,
-            mobileFontSize: 32,
-            format: 'auto' as const,
-            align: 'left' as const,
-            mobileAlign: 'left' as const,
-            lineGap: 1.2,
-          }
-        : r
-    );
-    onUpdateValue('rules', nextRules);
-  };
+  // Determine current active effect type
+  const activeEffectType: TextEffectType =
+    activeRule?.effectType ||
+    (activeRule?.gradientEnabled
+      ? 'gradient'
+      : activeRule?.underlineEnabled
+        ? 'underline'
+        : activeRule?.highlightEnabled
+          ? 'fill'
+          : 'none');
 
-  let activeEffectType = 'none';
-  if (activeRule?.gradientEnabled) activeEffectType = 'gradient';
-  else if (activeRule?.highlightEnabled) activeEffectType = 'highlight';
-  else if (activeRule?.underlineEnabled) activeEffectType = 'underline';
-  else if (activeRule?.shadowEffect && activeRule.shadowEffect !== 'none') activeEffectType = 'shadow';
+  const activeDescriptor =
+    TEXT_EFFECTS_CATALOG.find((e) => e.id === activeEffectType) || TEXT_EFFECTS_CATALOG[0];
 
-  const handleEffectTypeChange = (type: string) => {
+  const handleSelectEffect = (type: TextEffectType) => {
     if (!activeRule) return;
+    setIsEffectsMenuOpen(false);
+    setHoveredEffectId(null);
+
     const nextRules = rules.map((r) => {
       if (r.id !== activeRule.id) return r;
       return {
         ...r,
+        effectType: type,
+        // Reset legacy booleans if 'none'
         gradientEnabled: type === 'gradient',
-        highlightEnabled: type === 'highlight',
+        highlightEnabled: type === 'fill',
         underlineEnabled: type === 'underline',
-        shadowEffect: type === 'shadow' ? ('glow' as const) : ('none' as const),
+        shadowEffect: 'none' as const,
+      };
+    });
+    onUpdateValue('rules', nextRules);
+    if (!enabled) {
+      onUpdateValue('enabled', true);
+    }
+  };
+
+  const handleResetTextEffects = () => {
+    if (!activeRule) return;
+    setIsEffectsMenuOpen(false);
+    setHoveredEffectId(null);
+
+    const nextRules = rules.map((r) => {
+      if (r.id !== activeRule.id) return r;
+      return {
+        ...r,
+        effectType: 'none' as TextEffectType,
+        effectTextColor: '#c2410c',
+        effectAccentColor: '#0f172a',
+        effectApplyTo: 'all' as TextEffectApplyTo,
+        effectSpeed: 'medium' as TextEffectSpeed,
+        gradientEnabled: false,
+        highlightEnabled: false,
+        underlineEnabled: false,
+        shadowEffect: 'none' as const,
       };
     });
     onUpdateValue('rules', nextRules);
   };
 
-  const handleResetTextEffects = () => {
-    handleEffectTypeChange('none');
+  // Apply To cycling: 'all' -> 'first-word' -> 'last-word'
+  const applyToOptions: TextEffectApplyTo[] = ['all', 'first-word', 'last-word'];
+  const applyToLabels: Record<TextEffectApplyTo, string> = {
+    all: 'All words',
+    'first-word': 'First word',
+    'last-word': 'Last word',
   };
+
+  const cycleApplyTo = (direction: 'prev' | 'next') => {
+    if (!activeRule) return;
+    const current = activeRule.effectApplyTo || 'all';
+    const idx = applyToOptions.indexOf(current);
+    const nextIdx =
+      direction === 'next'
+        ? (idx + 1) % applyToOptions.length
+        : (idx - 1 + applyToOptions.length) % applyToOptions.length;
+    handleUpdateActiveRule('effectApplyTo', applyToOptions[nextIdx]);
+  };
+
+  // Speed cycling: 'slow' -> 'medium' -> 'fast'
+  const speedOptions: TextEffectSpeed[] = ['slow', 'medium', 'fast'];
+  const speedLabels: Record<TextEffectSpeed, string> = {
+    slow: 'Slow',
+    medium: 'Medium',
+    fast: 'Fast',
+  };
+
+  const cycleSpeed = (direction: 'prev' | 'next') => {
+    if (!activeRule) return;
+    const current = activeRule.effectSpeed || 'medium';
+    const idx = speedOptions.indexOf(current);
+    const nextIdx =
+      direction === 'next'
+        ? Math.min(speedOptions.length - 1, idx + 1)
+        : Math.max(0, idx - 1);
+    handleUpdateActiveRule('effectSpeed', speedOptions[nextIdx]);
+  };
+
+  const hoveredDescriptor = hoveredEffectId
+    ? TEXT_EFFECTS_CATALOG.find((e) => e.id === hoveredEffectId) || null
+    : null;
 
   return (
     <div class="text-effects-editor">
@@ -168,7 +234,9 @@ export function TextEffectsEditor({
         <h2 class="detail-title">Text</h2>
         {activeRule ? (
           <div class="editing-badge">
-            <span>Editing: {activeRule.label.length > 18 ? `${activeRule.label.slice(0, 18)}…` : activeRule.label}</span>
+            <span>
+              Editing: {activeRule.label.length > 18 ? `${activeRule.label.slice(0, 18)}…` : activeRule.label}
+            </span>
             <button
               type="button"
               class="editing-done-btn"
@@ -178,13 +246,14 @@ export function TextEffectsEditor({
               Done
             </button>
           </div>
-        ) : null}
+        ) : (
+          <span class="badge count-badge">{rules.length} styled</span>
+        )}
       </div>
 
       {activeRule ? (
-        /* SINGLE FOCUSED ELEMENT PROPERTY INSPECTOR */
-        <div class="focused-inspector">
-          {/* 1. TEXT OPTIONS SECTION */}
+        <div class="active-rule-panel">
+          {/* 1. TEXT OPTIONS SECTION (FR-TE11) */}
           <div class="section-card">
             <div class="section-header">
               <div class="section-title-wrap">
@@ -195,8 +264,16 @@ export function TextEffectsEditor({
                 <button
                   type="button"
                   class="section-reset-btn"
-                  title="Reset text options"
-                  onClick={handleResetTextOptions}
+                  title="Reset text options to defaults"
+                  onClick={() => {
+                    handleUpdateActiveRule('textColor', '#ffffff');
+                    handleUpdateActiveRule('fontSize', 48);
+                    handleUpdateActiveRule('mobileFontSize', 32);
+                    handleUpdateActiveRule('format', 'auto');
+                    handleUpdateActiveRule('align', 'left');
+                    handleUpdateActiveRule('mobileAlign', 'left');
+                    handleUpdateActiveRule('lineGap', 1.2);
+                  }}
                 >
                   ↺
                 </button>
@@ -216,16 +293,20 @@ export function TextEffectsEditor({
               </div>
             </div>
 
+            {/* Typography tag display */}
+            <div style="margin: 10px 0 2px 0;">
+              <span class="tag-text-label" style="font-size: 13.5px; font-weight: 700; color: #0f172a;">
+                {getTagDisplayName(activeRule.tag || 'h2')}
+              </span>
+            </div>
+
+            <p class="section-desc" style="margin: 2px 0 10px 0;">
+              Adjust font size, color, alignment, spacing, and formatting.
+            </p>
+
             {activeRule.textOptionsEnabled && (
               <div class="section-body">
-                {/* Heading tag text indicator */}
-                <div class="tag-text-label">
-                  {getTagDisplayName(activeRule.tag || 'h2')}
-                </div>
-
-                <p class="section-desc">Adjust font size, color, alignment, spacing, and formatting.</p>
-
-                {/* Color */}
+                {/* Text Color */}
                 <label>
                   <span>Color</span>
                   <div class="color-picker-row">
@@ -234,7 +315,10 @@ export function TextEffectsEditor({
                       class="color-swatch-input"
                       value={activeRule.textColor || '#ffffff'}
                       onInput={(e) =>
-                        handleUpdateActiveRule('textColor', (e.target as HTMLInputElement).value)
+                        handleUpdateActiveRule(
+                          'textColor',
+                          (e.target as HTMLInputElement).value
+                        )
                       }
                     />
                     <input
@@ -242,7 +326,10 @@ export function TextEffectsEditor({
                       class="color-hex-input"
                       value={activeRule.textColor || '#ffffff'}
                       onInput={(e) =>
-                        handleUpdateActiveRule('textColor', (e.target as HTMLInputElement).value)
+                        handleUpdateActiveRule(
+                          'textColor',
+                          (e.target as HTMLInputElement).value
+                        )
                       }
                     />
                   </div>
@@ -253,11 +340,11 @@ export function TextEffectsEditor({
                   <span>
                     Size <b>{activeRule.fontSize || 48}px</b>
                   </span>
-                  <div class="row-input-group">
+                  <div class="slider-with-number">
                     <input
                       type="range"
                       min="12"
-                      max="120"
+                      max="140"
                       value={activeRule.fontSize || 48}
                       onInput={(e) =>
                         handleUpdateActiveRule(
@@ -270,7 +357,7 @@ export function TextEffectsEditor({
                       type="number"
                       class="number-pill-input"
                       min="12"
-                      max="120"
+                      max="140"
                       value={activeRule.fontSize || 48}
                       onInput={(e) =>
                         handleUpdateActiveRule(
@@ -285,10 +372,9 @@ export function TextEffectsEditor({
                 {/* Mobile Size */}
                 <label>
                   <span>
-                    <span>Mobile size <span class="mobile-tag">📱 Mobile</span></span>
-                    <b>{activeRule.mobileFontSize || 32}px</b>
+                    Mobile size <span class="mobile-tag">📱 Mobile</span> <b>{activeRule.mobileFontSize || 32}px</b>
                   </span>
-                  <div class="row-input-group">
+                  <div class="slider-with-number">
                     <input
                       type="range"
                       min="10"
@@ -414,7 +500,7 @@ export function TextEffectsEditor({
             )}
           </div>
 
-          {/* 2. TEXT EFFECTS SECTION */}
+          {/* 2. TEXT EFFECTS SECTION (FR-TE12) */}
           <div class="section-card">
             <div class="section-header">
               <div class="section-title-wrap">
@@ -422,198 +508,200 @@ export function TextEffectsEditor({
                 <div class="section-title">Text effects</div>
               </div>
               <div class="section-actions">
-                <button
-                  type="button"
-                  class="section-reset-btn"
-                  title="Reset text effects"
-                  onClick={handleResetTextEffects}
-                >
-                  ↺
-                </button>
-                <select
-                  style="width: auto; padding: 4px 8px; font-size: 12px; font-weight: 600;"
-                  value={activeEffectType}
-                  onChange={(e) => handleEffectTypeChange((e.target as HTMLSelectElement).value)}
-                >
-                  <option value="none">None ▾</option>
-                  <option value="gradient">Gradient Fill</option>
-                  <option value="highlight">Highlighter Pen</option>
-                  <option value="underline">Accent Underline</option>
-                  <option value="shadow">Shadow & Glow</option>
-                </select>
+                {activeEffectType !== 'none' && (
+                  <button
+                    type="button"
+                    class="section-reset-btn"
+                    title="Reset text effects"
+                    onClick={handleResetTextEffects}
+                  >
+                    ↺
+                  </button>
+                )}
+
+                <div class="effect-dropdown-wrap">
+                  <button
+                    type="button"
+                    class="effect-dropdown-trigger"
+                    onClick={() => setIsEffectsMenuOpen(!isEffectsMenuOpen)}
+                  >
+                    <span>
+                      {activeDescriptor.name.length > 14
+                        ? `${activeDescriptor.name.slice(0, 14)}…`
+                        : activeDescriptor.name}
+                    </span>
+                    <span>{isEffectsMenuOpen ? '▴' : '▾'}</span>
+                  </button>
+
+                  {/* Dropdown Menu List with Live Hover Preview */}
+                  {isEffectsMenuOpen && (
+                    <ul class="effect-dropdown-menu">
+                      {TEXT_EFFECTS_CATALOG.map((item) => (
+                        <li
+                          key={item.id}
+                          class={`effect-menu-item ${activeEffectType === item.id ? 'active' : ''}`}
+                          onMouseEnter={() => setHoveredEffectId(item.id)}
+                          onMouseLeave={() => setHoveredEffectId(null)}
+                          onClick={() => handleSelectEffect(item.id)}
+                        >
+                          <span>{item.name}</span>
+                          {activeEffectType === item.id && (
+                            <span class="effect-menu-check">✓</span>
+                          )}
+                        </li>
+                      ))}
+
+                      {/* Floating Specimen Hover Preview Popover */}
+                      {hoveredDescriptor && hoveredDescriptor.id !== 'none' && (
+                        <div class="effect-hover-popover">
+                          <div
+                            class={`popover-title popover-preview-${hoveredDescriptor.id}`}
+                          >
+                            {hoveredDescriptor.previewTitle}
+                          </div>
+                          <div class="popover-subtitle">
+                            {hoveredDescriptor.previewSubtitle}
+                          </div>
+                        </div>
+                      )}
+                    </ul>
+                  )}
+                </div>
               </div>
             </div>
-            <p class="section-desc" style="margin: 8px 0 0 0;">
-              A range of visual design effects to make your headings stand out.
-            </p>
 
-            {/* Gradient controls */}
-            {activeEffectType === 'gradient' && (
-              <div class="section-body">
-                <label>
-                  <span>Start color</span>
-                  <input
-                    type="color"
-                    value={activeRule.gradientStart}
-                    onInput={(e) =>
-                      handleUpdateActiveRule('gradientStart', (e.target as HTMLInputElement).value)
-                    }
-                  />
-                </label>
-                <label>
-                  <span>End color</span>
-                  <input
-                    type="color"
-                    value={activeRule.gradientEnd}
-                    onInput={(e) =>
-                      handleUpdateActiveRule('gradientEnd', (e.target as HTMLInputElement).value)
-                    }
-                  />
-                </label>
-                <label>
-                  <span>
-                    Gradient angle <b>{activeRule.gradientAngle}&deg;</b>
-                  </span>
-                  <input
-                    type="range"
-                    min="0"
-                    max="360"
-                    value={activeRule.gradientAngle}
-                    onInput={(e) =>
-                      handleUpdateActiveRule(
-                        'gradientAngle',
-                        Number((e.target as HTMLInputElement).value)
-                      )
-                    }
-                  />
-                </label>
-                <label class="row">
-                  <span>Animate gradient wave</span>
-                  <input
-                    type="checkbox"
-                    checked={activeRule.gradientAnimate}
-                    onChange={(e) =>
-                      handleUpdateActiveRule(
-                        'gradientAnimate',
-                        (e.target as HTMLInputElement).checked
-                      )
-                    }
-                  />
-                </label>
-              </div>
-            )}
+            {/* Sub-panel Controls when Effect is Selected (Image 2) */}
+            {activeEffectType !== 'none' ? (
+              <div class="section-body" style="margin-top: 12px;">
+                {/* 1. Text color */}
+                <div class="color-swatch-row">
+                  <span class="color-swatch-label">Text color</span>
+                  <div class="color-swatch-wrap">
+                    <span
+                      class="color-swatch-circle"
+                      style={{
+                        backgroundColor:
+                          activeRule.effectTextColor || activeRule.textColor || '#c2410c',
+                      }}
+                      title="Pick text color"
+                    >
+                      <input
+                        type="color"
+                        value={
+                          activeRule.effectTextColor || activeRule.textColor || '#c2410c'
+                        }
+                        onInput={(e) =>
+                          handleUpdateActiveRule(
+                            'effectTextColor',
+                            (e.target as HTMLInputElement).value
+                          )
+                        }
+                      />
+                    </span>
+                    <button
+                      type="button"
+                      class="swatch-clear-btn"
+                      title="Reset text color"
+                      onClick={() => handleUpdateActiveRule('effectTextColor', '#c2410c')}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                </div>
 
-            {/* Highlight controls */}
-            {activeEffectType === 'highlight' && (
-              <div class="section-body">
-                <label>
-                  <span>Highlighter color</span>
-                  <input
-                    type="color"
-                    value={activeRule.highlightColor}
-                    onInput={(e) =>
-                      handleUpdateActiveRule('highlightColor', (e.target as HTMLInputElement).value)
-                    }
-                  />
-                </label>
-                <label>
-                  <span>Highlight style</span>
-                  <select
-                    value={activeRule.highlightStyle}
-                    onChange={(e) =>
-                      handleUpdateActiveRule(
-                        'highlightStyle',
-                        (e.target as HTMLSelectElement).value as StyledTextRule['highlightStyle']
-                      )
-                    }
-                  >
-                    <option value="underline">Subtle underline</option>
-                    <option value="thick">Thick marker line</option>
-                    <option value="full">Full text highlight</option>
-                  </select>
-                </label>
-              </div>
-            )}
+                {/* 2. Accent color */}
+                <div class="color-swatch-row">
+                  <span class="color-swatch-label">Accent color</span>
+                  <div class="color-swatch-wrap">
+                    <span
+                      class="color-swatch-circle"
+                      style={{
+                        backgroundColor: activeRule.effectAccentColor || '#0f172a',
+                      }}
+                      title="Pick accent color"
+                    >
+                      <input
+                        type="color"
+                        value={activeRule.effectAccentColor || '#0f172a'}
+                        onInput={(e) =>
+                          handleUpdateActiveRule(
+                            'effectAccentColor',
+                            (e.target as HTMLInputElement).value
+                          )
+                        }
+                      />
+                    </span>
+                    <button
+                      type="button"
+                      class="swatch-clear-btn"
+                      title="Reset accent color"
+                      onClick={() => handleUpdateActiveRule('effectAccentColor', '#0f172a')}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                </div>
 
-            {/* Underline controls */}
-            {activeEffectType === 'underline' && (
-              <div class="section-body">
-                <label>
-                  <span>Underline color</span>
-                  <input
-                    type="color"
-                    value={activeRule.underlineColor}
-                    onInput={(e) =>
-                      handleUpdateActiveRule('underlineColor', (e.target as HTMLInputElement).value)
-                    }
-                  />
-                </label>
-                <label>
-                  <span>
-                    Thickness <b>{activeRule.underlineThickness}px</b>
-                  </span>
-                  <input
-                    type="range"
-                    min="1"
-                    max="10"
-                    value={activeRule.underlineThickness}
-                    onInput={(e) =>
-                      handleUpdateActiveRule(
-                        'underlineThickness',
-                        Number((e.target as HTMLInputElement).value)
-                      )
-                    }
-                  />
-                </label>
-                <label>
-                  <span>Underline visibility</span>
-                  <select
-                    value={activeRule.underlineHover}
-                    onChange={(e) =>
-                      handleUpdateActiveRule(
-                        'underlineHover',
-                        (e.target as HTMLSelectElement).value as StyledTextRule['underlineHover']
-                      )
-                    }
-                  >
-                    <option value="hover">Expand on hover</option>
-                    <option value="always">Always visible</option>
-                  </select>
-                </label>
-              </div>
-            )}
+                {/* 3. Apply style to (< All words >) */}
+                <div class="stepper-row">
+                  <span class="stepper-label">Apply style to</span>
+                  <div class="stepper-control">
+                    <button
+                      type="button"
+                      class="stepper-btn"
+                      title="Previous word option"
+                      onClick={() => cycleApplyTo('prev')}
+                    >
+                      ‹
+                    </button>
+                    <span class="stepper-value">
+                      {applyToLabels[activeRule.effectApplyTo || 'all']}
+                    </span>
+                    <button
+                      type="button"
+                      class="stepper-btn"
+                      title="Next word option"
+                      onClick={() => cycleApplyTo('next')}
+                    >
+                      ›
+                    </button>
+                  </div>
+                </div>
 
-            {/* Shadow & Glow controls */}
-            {activeEffectType === 'shadow' && (
-              <div class="section-body">
-                <label>
-                  <span>Shadow preset</span>
-                  <select
-                    value={activeRule.shadowEffect}
-                    onChange={(e) =>
-                      handleUpdateActiveRule(
-                        'shadowEffect',
-                        (e.target as HTMLSelectElement).value as StyledTextRule['shadowEffect']
-                      )
-                    }
-                  >
-                    <option value="subtle">Subtle drop shadow</option>
-                    <option value="glow">Neon outer glow</option>
-                    <option value="retro-3d">Retro 3D shadow</option>
-                    <option value="soft-drop">Soft diffused shadow</option>
-                  </select>
-                </label>
-                <label>
-                  <span>Shadow / glow color</span>
-                  <input
-                    type="color"
-                    value={activeRule.shadowColor}
-                    onInput={(e) =>
-                      handleUpdateActiveRule('shadowColor', (e.target as HTMLInputElement).value)
-                    }
-                  />
-                </label>
+                {/* 4. Animation speed (- Medium +) */}
+                <div class="stepper-row">
+                  <span class="stepper-label">Animation speed</span>
+                  <div class="stepper-control">
+                    <button
+                      type="button"
+                      class="stepper-btn"
+                      title="Slower speed"
+                      onClick={() => cycleSpeed('prev')}
+                    >
+                      –
+                    </button>
+                    <span class="stepper-value">
+                      {speedLabels[activeRule.effectSpeed || 'medium']}
+                    </span>
+                    <button
+                      type="button"
+                      class="stepper-btn"
+                      title="Faster speed"
+                      onClick={() => cycleSpeed('next')}
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+
+                <p class="section-desc" style="margin: 10px 0 0 0;">
+                  A range of visual design effects to make your headings stand out.
+                </p>
               </div>
+            ) : (
+              <p class="section-desc" style="margin: 8px 0 0 0;">
+                A range of visual design effects to make your headings stand out.
+              </p>
             )}
           </div>
 
@@ -625,7 +713,9 @@ export function TextEffectsEditor({
                 <div class="section-title">Word loop</div>
               </div>
               <div class="section-actions">
-                <button type="button" class="section-reset-btn" title="Reset word loop">↺</button>
+                <button type="button" class="section-reset-btn" title="Reset word loop">
+                  ↺
+                </button>
                 <label class="switch">
                   <input type="checkbox" disabled />
                   <span class="slider-round" />
@@ -664,7 +754,10 @@ export function TextEffectsEditor({
                 <div class="section-title">Paragraph styles</div>
               </div>
               <div class="section-actions">
-                <select style="width: auto; padding: 4px 8px; font-size: 12px; font-weight: 600;" disabled>
+                <select
+                  style="width: auto; padding: 4px 8px; font-size: 12px; font-weight: 600;"
+                  disabled
+                >
                   <option>None ▾</option>
                 </select>
               </div>
@@ -688,7 +781,8 @@ export function TextEffectsEditor({
         <div class="empty-selection-card">
           <div class="empty-icon">✍️</div>
           <p>
-            <b>No text element selected</b><br />
+            <b>No text element selected</b>
+            <br />
             Click any heading or paragraph on your page to style it.
           </p>
         </div>

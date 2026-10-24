@@ -127,7 +127,52 @@ export function validateFeatureConfig<C extends Record<string, unknown>>(
           out.lineGap = r.lineGap;
         }
 
-        // Text Effects (Gradient, Highlight, Underline, Shadow)
+        // Visual Text Effects (FR-TE12)
+        const validEffectTypes = [
+          'none',
+          'gradient',
+          'fill-on-scroll',
+          'reveal-on-scroll',
+          'underline',
+          'stroke',
+          'colorful',
+          'fill',
+          'strong-fill',
+          'candy-cane',
+        ];
+        out.effectType = validEffectTypes.includes(r.effectType as string)
+          ? r.effectType
+          : (r.gradientEnabled ? 'gradient' : (r.underlineEnabled ? 'underline' : (r.highlightEnabled ? 'fill' : 'none')));
+
+        out.effectTextColor =
+          typeof r.effectTextColor === 'string' && (COLOR_HEX_REGEX.test(r.effectTextColor) || r.effectTextColor === 'inherit')
+            ? r.effectTextColor
+            : '#c2410c';
+
+        out.effectAccentColor =
+          typeof r.effectAccentColor === 'string' && (COLOR_HEX_REGEX.test(r.effectAccentColor) || r.effectAccentColor === 'inherit')
+            ? r.effectAccentColor
+            : '#0f172a';
+
+        out.effectApplyTo = ['all', 'first-word', 'last-word'].includes(r.effectApplyTo as string)
+          ? r.effectApplyTo
+          : 'all';
+
+        out.effectSpeed = ['slow', 'medium', 'fast'].includes(r.effectSpeed as string)
+          ? r.effectSpeed
+          : 'medium';
+
+        out.effectAngle =
+          typeof r.effectAngle === 'number' && Number.isFinite(r.effectAngle)
+            ? r.effectAngle
+            : (typeof r.gradientAngle === 'number' ? r.gradientAngle : 135);
+
+        out.effectThickness =
+          typeof r.effectThickness === 'number' && Number.isFinite(r.effectThickness)
+            ? r.effectThickness
+            : (typeof r.underlineThickness === 'number' ? r.underlineThickness : 2);
+
+        // Text Effects (Legacy Gradient, Highlight, Underline, Shadow)
         out.gradientEnabled = Boolean(r.gradientEnabled);
         out.gradientStart =
           typeof r.gradientStart === 'string' && COLOR_HEX_REGEX.test(r.gradientStart)

@@ -367,5 +367,66 @@ describe('Editor Panel (TC-E04, TC-E05, TC-E08, TC-E09, TC-E10, TC-E11, TC-E12)'
     expect(styleEl).not.toBeNull();
     expect(styleEl?.textContent).toContain('color: #ef4444 !important;');
   });
+
+  it('TC-E18: opens Text effects menu, selects an effect, and renders dynamic customizer with swatches & steppers', () => {
+    registry.register(textEffectsFeature);
+    const heading = document.createElement('h1');
+    heading.id = 'hero-effects-h1';
+    heading.textContent = 'Créateur de contenu';
+    document.body.appendChild(heading);
+
+    act(() => {
+      mountEditor();
+    });
+    const shadow = document.getElementById('sitekit-host')!.shadowRoot!;
+    act(() => {
+      (shadow.querySelector('.fab') as HTMLButtonElement).click();
+    });
+
+    // Click heading on canvas to focus it in editor
+    act(() => {
+      heading.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+    });
+
+    // Click dropdown trigger
+    const trigger = shadow.querySelector('.effect-dropdown-trigger') as HTMLButtonElement;
+    expect(trigger).not.toBeNull();
+    expect(trigger.textContent).toContain('None');
+
+    act(() => {
+      trigger.click();
+    });
+
+    // Menu should be open
+    const menu = shadow.querySelector('.effect-dropdown-menu');
+    expect(menu).not.toBeNull();
+
+    // Select "Gradient animated"
+    const items = shadow.querySelectorAll('.effect-menu-item');
+    expect(items.length).toBeGreaterThan(0);
+    const gradientItem = Array.from(items).find((el) => el.textContent?.includes('Gradient animated')) as HTMLElement;
+    expect(gradientItem).not.toBeNull();
+
+    act(() => {
+      gradientItem.click();
+    });
+
+    // Trigger should now show Gradient animated
+    expect(shadow.querySelector('.effect-dropdown-trigger')?.textContent).toContain('Gradient');
+
+    // Dynamic customizer controls should appear
+    const colorSwatches = shadow.querySelectorAll('.color-swatch-circle');
+    expect(colorSwatches.length).toBe(2); // Text color + Accent color
+
+    const steppers = shadow.querySelectorAll('.stepper-control');
+    expect(steppers.length).toBe(2); // Apply style to + Animation speed
+
+    expect(shadow.querySelector('.stepper-value')?.textContent).toBe('All words');
+
+    // Check live CSS contains gradient text
+    const styleEl = document.querySelector('style[data-sk="textEffects"]');
+    expect(styleEl).not.toBeNull();
+    expect(styleEl?.textContent).toContain('sitekit-text-gradient-pan');
+  });
 });
 
