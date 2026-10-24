@@ -54,7 +54,7 @@ export const EDITOR_CSS = `
   flex-direction: column;
   background: #ffffff;
   color: #0f172a;
-  border-radius: 28px;
+  border-radius: 20px;
   border: 1px solid rgba(0, 0, 0, 0.06);
   box-shadow: 0 24px 60px -10px rgba(0, 0, 0, 0.22), 0 0 0 1px rgba(0, 0, 0, 0.04);
   z-index: 2147483641;
@@ -128,7 +128,7 @@ export const EDITOR_CSS = `
 
 .help-banner {
   margin: 0 20px 12px;
-  padding: 12px 14px;
+  padding: 12px 0px;
   background: #f0fdfa;
   border: 1px solid #ccfbf1;
   border-radius: 14px;
@@ -147,7 +147,7 @@ export const EDITOR_CSS = `
 }
 
 .features-header-area {
-  padding: 4px 20px 12px;
+  padding: 4px 0px 12px;
 }
 
 .features-title {
