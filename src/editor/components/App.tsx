@@ -24,16 +24,17 @@ export function App({ store }: AppProps) {
   const env = { isEditor: true, isEditorActive: false };
 
   // Universal Auto-Inspector: when panel is open, hovering over buttons or text
-  // allows one-click selection to edit that specific element
+  // allows instant single-click selection to edit that specific element
   useEffect(() => {
     if (!state.open) return;
 
     const cleanup = startInspector({
       onSelect: (target: PickedTarget) => {
+        const currentDraft = store.getState().draft;
         if (target.kind === 'button') {
-          const feat = features.find((f) => f.id === 'buttonStyles');
+          const feat = registry.get('buttonStyles');
           if (feat) {
-            const currentCfg = (state.draft.features?.buttonStyles || {}) as ButtonStylesConfig;
+            const currentCfg = (currentDraft.features?.buttonStyles || {}) as ButtonStylesConfig;
             const currentRules = Array.isArray(currentCfg.rules) ? currentCfg.rules : [];
             const exists = currentRules.some((r) => r.selector === target.selector);
             if (!exists) {
@@ -50,9 +51,9 @@ export function App({ store }: AppProps) {
             store.setActiveFeatureId('buttonStyles');
           }
         } else if (target.kind === 'text') {
-          const feat = features.find((f) => f.id === 'textEffects');
+          const feat = registry.get('textEffects');
           if (feat) {
-            const currentCfg = (state.draft.features?.textEffects || {}) as TextEffectsConfig;
+            const currentCfg = (currentDraft.features?.textEffects || {}) as TextEffectsConfig;
             const currentRules = Array.isArray(currentCfg.rules) ? currentCfg.rules : [];
             const exists = currentRules.some((r) => r.selector === target.selector);
             if (!exists) {
@@ -73,7 +74,7 @@ export function App({ store }: AppProps) {
     });
 
     return () => cleanup();
-  }, [state.open, state.draft, features]);
+  }, [state.open]);
 
   return (
     <>

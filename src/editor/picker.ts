@@ -42,8 +42,8 @@ export function detectElementTarget(
   // 2. Check Text
   if (filterKind !== 'button' && isTextElement(target)) {
     const txt = (target.closest(
-      'h1, h2, h3, h4, h5, h6, p, blockquote, .sqsrte-large, .sqsrte-small, [data-sqsp-text-block-content] *'
-    ) || target) as HTMLElement;
+      'h1, h2, h3, h4, h5, h6, p, blockquote, .sqsrte-large, .sqsrte-small'
+    ) || target.closest('[data-sqsp-text-block-content] *') || target) as HTMLElement;
     return { element: txt, kind: 'text' };
   }
 
@@ -146,6 +146,20 @@ export function startPicker(options: PickerOptions): () => void {
 
   let currentTargetEl: HTMLElement | null = null;
   let currentKind: TargetKind = 'text';
+  let lastSelectTime = 0;
+
+  const triggerSelect = (el: HTMLElement, kind: TargetKind) => {
+    const now = Date.now();
+    if (now - lastSelectTime < 350) return;
+    lastSelectTime = now;
+
+    const selector = extractTargetSelector(el, kind);
+    const label = extractTargetLabel(el, kind);
+    const textSnippet = (el.textContent || '').trim();
+
+    cleanup();
+    options.onSelect({ kind, selector, label, textSnippet });
+  };
 
   const onMouseMove = (e: MouseEvent) => {
     const rawTarget = e.target as HTMLElement | null;
@@ -175,7 +189,8 @@ export function startPicker(options: PickerOptions): () => void {
     badge.textContent = `🎯 ${extractTargetLabel(currentTargetEl, currentKind)}`;
   };
 
-  const onClick = (e: MouseEvent) => {
+  const onPointerDown = (e: MouseEvent | PointerEvent) => {
+    if (e.button !== 0) return;
     const target = e.target as HTMLElement | null;
     if (!target || typeof target.closest !== 'function') return;
 
@@ -184,26 +199,31 @@ export function startPicker(options: PickerOptions): () => void {
       return;
     }
 
-    e.preventDefault();
-    e.stopPropagation();
+    const targetEl = currentTargetEl || detectElementTarget(target, options.filterKind || 'all')?.element;
+    const kind = (currentTargetEl ? currentKind : detectElementTarget(target, options.filterKind || 'all')?.kind) || 'text';
 
-    if (!currentTargetEl) {
-      const res = detectElementTarget(target, options.filterKind || 'all');
-      if (res) {
-        currentTargetEl = res.element;
-        currentKind = res.kind;
-      }
+    if (targetEl) {
+      e.preventDefault();
+      e.stopPropagation();
+      triggerSelect(targetEl, kind);
+    }
+  };
+
+  const onClick = (e: MouseEvent) => {
+    const target = e.target as HTMLElement | null;
+    if (!target || typeof target.closest !== 'function') return;
+
+    if (target.closest('#sitekit-host') || target.closest('[data-sk="host"]')) {
+      return;
     }
 
-    if (currentTargetEl) {
-      const selector = extractTargetSelector(currentTargetEl, currentKind);
-      const label = extractTargetLabel(currentTargetEl, currentKind);
-      const textSnippet = (currentTargetEl.textContent || '').trim();
+    const targetEl = currentTargetEl || detectElementTarget(target, options.filterKind || 'all')?.element;
+    const kind = (currentTargetEl ? currentKind : detectElementTarget(target, options.filterKind || 'all')?.kind) || 'text';
 
-      cleanup();
-      options.onSelect({ kind: currentKind, selector, label, textSnippet });
-    } else {
-      cleanup(true);
+    if (targetEl) {
+      e.preventDefault();
+      e.stopPropagation();
+      triggerSelect(targetEl, kind);
     }
   };
 
@@ -215,6 +235,7 @@ export function startPicker(options: PickerOptions): () => void {
 
   const cleanup = (cancelled = false) => {
     window.removeEventListener('mousemove', onMouseMove, true);
+    window.removeEventListener('pointerdown', onPointerDown, true);
     window.removeEventListener('click', onClick, true);
     window.removeEventListener('keydown', onKeyDown, true);
     highlight.remove();
@@ -224,6 +245,7 @@ export function startPicker(options: PickerOptions): () => void {
   };
 
   window.addEventListener('mousemove', onMouseMove, true);
+  window.addEventListener('pointerdown', onPointerDown, true);
   window.addEventListener('click', onClick, true);
   window.addEventListener('keydown', onKeyDown, true);
 
@@ -232,7 +254,7 @@ export function startPicker(options: PickerOptions): () => void {
 
 /**
  * Universal auto-inspector that runs whenever the editor panel is open.
- * Highlights buttons and text on hover and routes click to edit that element.
+ * Highlights buttons and text on hover and instantly routes on first click.
  */
 export function startInspector(options: InspectorOptions): () => void {
   if (typeof document === 'undefined') {
@@ -257,6 +279,22 @@ export function startInspector(options: InspectorOptions): () => void {
 
   let currentTargetEl: HTMLElement | null = null;
   let currentKind: TargetKind = 'text';
+  let lastSelectTime = 0;
+
+  const triggerSelect = (el: HTMLElement, kind: TargetKind) => {
+    const now = Date.now();
+    if (now - lastSelectTime < 350) return;
+    lastSelectTime = now;
+
+    const selector = extractTargetSelector(el, kind);
+    const label = extractTargetLabel(el, kind);
+    const textSnippet = (el.textContent || '').trim();
+
+    highlight.style.display = 'none';
+    currentTargetEl = null;
+
+    options.onSelect({ kind, selector, label, textSnippet });
+  };
 
   const onMouseMove = (e: MouseEvent) => {
     // If picker is actively running, pause auto-inspector
@@ -307,6 +345,26 @@ export function startInspector(options: InspectorOptions): () => void {
     badge.textContent = `🎯 ${extractTargetLabel(currentTargetEl, currentKind)}`;
   };
 
+  const onPointerDown = (e: MouseEvent | PointerEvent) => {
+    if (e.button !== 0) return;
+    const rawTarget = e.target as HTMLElement | null;
+    if (!rawTarget || typeof rawTarget.closest !== 'function') return;
+
+    // Normal click inside editor panel
+    if (rawTarget.closest('#sitekit-host') || rawTarget.closest('[data-sk="host"]')) {
+      return;
+    }
+
+    const targetEl = currentTargetEl || detectElementTarget(rawTarget, 'all')?.element;
+    const kind = (currentTargetEl ? currentKind : detectElementTarget(rawTarget, 'all')?.kind) || 'text';
+
+    if (targetEl) {
+      e.preventDefault();
+      e.stopPropagation();
+      triggerSelect(targetEl, kind);
+    }
+  };
+
   const onClick = (e: MouseEvent) => {
     const rawTarget = e.target as HTMLElement | null;
     if (!rawTarget || typeof rawTarget.closest !== 'function') return;
@@ -316,25 +374,23 @@ export function startInspector(options: InspectorOptions): () => void {
       return;
     }
 
-    const res = detectElementTarget(rawTarget, 'all');
-    if (res && res.element) {
+    const targetEl = currentTargetEl || detectElementTarget(rawTarget, 'all')?.element;
+    const kind = (currentTargetEl ? currentKind : detectElementTarget(rawTarget, 'all')?.kind) || 'text';
+
+    if (targetEl) {
       e.preventDefault();
       e.stopPropagation();
-
-      const selector = extractTargetSelector(res.element, res.kind);
-      const label = extractTargetLabel(res.element, res.kind);
-      const textSnippet = (res.element.textContent || '').trim();
-
-      highlight.style.display = 'none';
-      options.onSelect({ kind: res.kind, selector, label, textSnippet });
+      triggerSelect(targetEl, kind);
     }
   };
 
   window.addEventListener('mousemove', onMouseMove, true);
+  window.addEventListener('pointerdown', onPointerDown, true);
   window.addEventListener('click', onClick, true);
 
   return () => {
     window.removeEventListener('mousemove', onMouseMove, true);
+    window.removeEventListener('pointerdown', onPointerDown, true);
     window.removeEventListener('click', onClick, true);
     highlight.remove();
   };
